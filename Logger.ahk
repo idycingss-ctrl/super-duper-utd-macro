@@ -92,3 +92,42 @@ GetUnitName(SpotObj) {
 
     return "Unknown Unit (" . X . "," . Y . ")"
 }
+
+LogScreenshot(Reason) {
+    Global WebhookURL
+    
+    ; 1. Create the Screenshots folder if it doesn't exist
+    FileCreateDir, %A_ScriptDir%\Screenshots
+    
+    ; 2. Generate a unique filename based on time
+    FormatTime, TimeString,, yyyy-MM-dd_HH-mm-ss
+    ScreenshotPath := A_ScriptDir . "\Screenshots\Restart_" . TimeString . ".png"
+    
+    ; 3. Use FindText to save the Full Screen
+    ; Arguments: SavePic(FileName, X, Y, X2, Y2)
+    try {
+        FindText().SavePic(ScreenshotPath, 0, 0, A_ScreenWidth, A_ScreenHeight)
+    } catch {
+        ; Fallback if FindText syntax differs in your version
+        SendWebhook("⚠️ Screenshot Error", "FindText failed to save image.", 15548997)
+        return
+    }
+
+    ; 4. Check if file exists before uploading
+    if !FileExist(ScreenshotPath)
+        return
+
+    ; 5. Upload to Discord using Curl (Built-in on Windows 10/11)
+    if (WebhookURL != "") {
+        SafeReason := JsonEscape(Reason)
+        
+        ; JSON Payload for the Embed text
+        JsonPayload := "{""content"": null, ""embeds"": [{""title"": ""📸 Restart Triggered"", ""description"": ""Trigger: **" . SafeReason . "**"", ""color"": 16711680}]}"
+        
+        ; Escape quotes for Command Line
+        JsonPayload := StrReplace(JsonPayload, """", "\""")
+        
+        ; Run Curl to upload the file + embed
+        Run, curl -F "file=@%ScreenshotPath%" -F "payload_json=%JsonPayload%" "%WebhookURL%",, Hide
+    }
+}

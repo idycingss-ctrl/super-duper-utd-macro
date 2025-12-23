@@ -223,6 +223,7 @@ return
     if (FindText(X, Y, 0, 500, 1920, 850, 0.1, 0.1, Text_RestartBtn)) {
         FileAppend, RESTART FOUND - Clicking until gone...`n, %LogFile%
         LogFinish("N/A", "Restart Button Found")
+	LogScreenshot("Game Ended")
         
         Loop {
             ; 1. Click the coordinates found by FindText
