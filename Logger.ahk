@@ -96,38 +96,39 @@ GetUnitName(SpotObj) {
 LogScreenshot(Reason) {
     Global WebhookURL
     
-    ; 1. Create the Screenshots folder if it doesn't exist
+    ; 1. Setup File Path
     FileCreateDir, %A_ScriptDir%\Screenshots
-    
-    ; 2. Generate a unique filename based on time
     FormatTime, TimeString,, yyyy-MM-dd_HH-mm-ss
+    ; We keep the local filename unique
     ScreenshotPath := A_ScriptDir . "\Screenshots\Restart_" . TimeString . ".png"
     
-    ; 3. Use FindText to save the Full Screen
-    ; Arguments: SavePic(FileName, X, Y, X2, Y2)
+    ; 2. Save Screenshot using FindText
     try {
         FindText().SavePic(ScreenshotPath, 0, 0, A_ScreenWidth, A_ScreenHeight)
     } catch {
-        ; Fallback if FindText syntax differs in your version
-        SendWebhook("⚠️ Screenshot Error", "FindText failed to save image.", 15548997)
         return
     }
 
-    ; 4. Check if file exists before uploading
-    if !FileExist(ScreenshotPath)
+    ; 3. Verify file is not empty (0 bytes = blank file = no image)
+    FileGetSize, Size, %ScreenshotPath%
+    if (Size < 100) ; If file is too small, it failed
         return
 
-    ; 5. Upload to Discord using Curl (Built-in on Windows 10/11)
+    ; 4. Upload using Curl (FORCED IMAGE MODE)
     if (WebhookURL != "") {
         SafeReason := JsonEscape(Reason)
         
-        ; JSON Payload for the Embed text
-        JsonPayload := "{""content"": null, ""embeds"": [{""title"": ""📸 Restart Triggered"", ""description"": ""Trigger: **" . SafeReason . "**"", ""color"": 16711680}]}"
+        ; We tell Discord the file is named "image.png" inside the packet
+        ; regardless of what it is named on your hard drive.
+        ; This guarantees the link "attachment://image.png" always works.
+        JsonPayload := "{""content"": null, ""embeds"": [{""title"": ""📸 Restart Triggered"", ""description"": ""Trigger: **" . SafeReason . "**"", ""color"": 16711680, ""image"": {""url"": ""attachment://image.png""}}]}"
         
-        ; Escape quotes for Command Line
+        ; Escape quotes
         JsonPayload := StrReplace(JsonPayload, """", "\""")
         
-        ; Run Curl to upload the file + embed
-        Run, curl -F "file=@%ScreenshotPath%" -F "payload_json=%JsonPayload%" "%WebhookURL%",, Hide
+        ; IMPORTANT CHANGE:
+        ; We added ";filename=image.png" to the file flag.
+        ; This forces Discord to treat it as a PNG image, not a generic file.
+        Run, %ComSpec% /c curl -F "payload_json=%JsonPayload%" -F "file=@%ScreenshotPath%;filename=image.png" "%WebhookURL%",, Hide
     }
 }
