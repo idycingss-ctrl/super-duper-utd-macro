@@ -11,7 +11,6 @@
     ; --- IMPORTS ---
     #Include FindText.ahk
     #Include CardSelector.ahk 
-    #Include Logger.ahk 
 
     ; ==============================================================================
     ; === 1. CONFIGURATION ===
@@ -269,3 +268,5 @@ return
         Sleep, 2000
     }
 }
+
+    #Include Logger.ahk 
