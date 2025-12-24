@@ -88,46 +88,37 @@ return
 
     ExecuteStrategy() {
 
-        SafePlace(Key_Speedwagon, RSpot_Speed)
-        SafePlace(Key_SJW, RSpot_SJW)
-        SafeMaxUpgrade(RSpot_Speed)
-        SafeMaxUpgrade(RSpot_SJW)
-        SafePlace(Key_Miku, RSpot_Miku)
-        Sleep, 500
-        SafeMaxUpgrade(RSpot_Miku)
-        SafePlace(Key_Ace, RSpot_Ace)
-        Sleep, 500
-        SafeMaxUpgrade(RSpot_Ace)
-        
-        ; SafePlace(Key_Speedwagon, Spot_GroundSpeed)
         
         
-        ; SafePlace(Key_Ace, Spot_HillAce)
+         SafePlace(Key_Speedwagon, Spot_GroundSpeed)
         
         
-        ; SafeUpgradeTo(Spot_GroundSpeed, Text_Upg1)
+         SafePlace(Key_Ace, Spot_HillAce)
         
         
-        ; SafePlace(Key_Kirito, Spot_GroundKirito)
+         SafeUpgradeTo(Spot_GroundSpeed, Text_Upg1)
         
         
-        ; SafeMaxUpgrade(Spot_GroundSpeed)
+         SafePlace(Key_Kirito, Spot_GroundKirito)
         
         
-        ; SafeMaxUpgrade(Spot_GroundKirito)
+         SafeMaxUpgrade(Spot_GroundSpeed)
         
-		;  SafePlace(Key_SJW, Spot_GroundSJW)
-        ; Sleep, 500
-        ; SafeMaxUpgrade(Spot_GroundSJW)
         
-        ; SafeMaxUpgrade(Spot_HillAce)
+         SafeMaxUpgrade(Spot_GroundKirito)
         
-        ; SafePlace(Key_Akainu, Spot_GroundAkainu1)
-        ; SafePlace(Key_Akainu, Spot_GroundAkainu2)
+		  SafePlace(Key_SJW, Spot_GroundSJW)
+         Sleep, 500
+         SafeMaxUpgrade(Spot_GroundSJW)
+        
+         SafeMaxUpgrade(Spot_HillAce)
+        
+         SafePlace(Key_Akainu, Spot_GroundAkainu1)
+         SafePlace(Key_Akainu, Spot_GroundAkainu2)
 
-        ; SafePlace(Key_Miku, Spot_GroundMiku)
-        ; Sleep, 500
-        ; SafeMaxUpgrade(Spot_GroundMiku)
+         SafePlace(Key_Miku, Spot_GroundMiku)
+         Sleep, 500
+         SafeMaxUpgrade(Spot_GroundMiku)
 
 
 
@@ -263,7 +254,7 @@ return
         }
         
         ; 4. Wait for the black screen/teleport to finish
-        Sleep, 8000 
+        Sleep, 3500 
         
         ; 5. Flip the switch to restart the bot
         GameFinished := True

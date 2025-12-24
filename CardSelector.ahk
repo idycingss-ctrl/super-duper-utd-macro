@@ -146,7 +146,7 @@ SelectBestCard() {
         Winner := ZoneM
     else
         Winner := ZoneR
-    /*
+    
         ; --- AUTO-SCREENSHOT FOR UNKNOWNS ---
         ; Check if ANY of the cards are unknown
         if (InfoL.cardName = "Unknown" || InfoM.cardName = "Unknown" || InfoR.cardName = "Unknown") {
@@ -164,7 +164,7 @@ SelectBestCard() {
             ; We capture the middle band where cards appear (Y 400 to 700) to keep files small
             FindText().SavePic(SnapPath, 0, 400, 1920, 700)
         }
-    */
+    
 
     ; --- LOGGING ---
     FormatTime, TimeString,, HH:mm:ss
