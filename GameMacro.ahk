@@ -39,7 +39,7 @@
     Global UX1 := 330, UY1 := 430, UX2 := 603, UY2 := 460
     Global Spot_WaitClick := {x: 70, y: 200}
     Global GameFinished := False
-
+	Global StartTime := 0
     ; ==============================================================================
     ; === 2. THE STRATEGY ===
     ; ==============================================================================
@@ -52,6 +52,7 @@
         
         ; --- RESET FLAGS FOR NEW GAME ---
         GameFinished := False 
+		StartTime := A_TickCount 
         ; We do NOT use SetTimer anymore. GuardDog handles it.
         LogStart("New Game - Voting Phase")
         ; --- RUN STRATEGY ---
@@ -76,7 +77,6 @@
         Sleep, 2000 
     }
 return
-
     F10::ExitApp
 
 
@@ -102,6 +102,10 @@ return
         ; 7. Place Miku (Slot 4) and Max
         ; SafePlace(Key_Miku, Spot_GroundMiku)
         ; SafeMaxUpgrade(Spot_GroundMiku)
+		
+		 SafePlace(Key_SJW, Spot_GroundSJW)
+        Sleep, 500
+        SafeMaxUpgrade(Spot_GroundSJW)
         
         ; 8. Max Ace
         SafeMaxUpgrade(Spot_HillAce)
@@ -114,9 +118,6 @@ return
         Sleep, 500
         SafeMaxUpgrade(Spot_GroundMiku)
 
-        SafePlace(Key_SJW, Spot_GroundSJW)
-        Sleep, 500
-        SafeMaxUpgrade(Spot_GroundSJW)
     }
     ; ==============================================================================
     ; === 3. SAFE ACTION FUNCTIONS ===
@@ -221,9 +222,16 @@ return
     ; --- B. RESTART CHECK (Moved to top priority) ---
     ; Search Y: 500 to 850 (Bottom half of screen)
     if (FindText(X, Y, 0, 500, 1920, 850, 0.1, 0.1, Text_RestartBtn)) {
-        FileAppend, RESTART FOUND - Clicking until gone...`n, %LogFile%
-        LogFinish("N/A", "Restart Button Found")
-	LogScreenshot("Game Ended")
+        ElapsedMS := A_TickCount - StartTime
+        Minutes := Floor(ElapsedMS / 60000)
+        Seconds := Floor(Mod(ElapsedMS, 60000) / 1000)
+        TimeStr := Minutes . "m " . Seconds . "s"
+        
+        FileAppend, RESTART FOUND - Run took %TimeStr%`n, %LogFile%
+        
+        ; --- NOW PASS THE REAL TIME TO DISCORD ---
+        LogFinish(TimeStr, "Restart Button Found")
+	
         
         Loop {
             ; 1. Click the coordinates found by FindText

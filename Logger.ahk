@@ -2,9 +2,6 @@
 ; === LOGGER.AHK - "Safe Anywhere" Version ===
 ; ==============================================================================
 
-; Note: We removed the global variables from the top because 
-; they don't run when included at the bottom.
-
 SendWebhook(Title, Message, Color) {
     ; Define Globals so we can access them
     Global WebhookURL, WebhookQueue
@@ -93,42 +90,5 @@ GetUnitName(SpotObj) {
     return "Unknown Unit (" . X . "," . Y . ")"
 }
 
-LogScreenshot(Reason) {
-    Global WebhookURL
-    
-    ; 1. Setup File Path
-    FileCreateDir, %A_ScriptDir%\Screenshots
-    FormatTime, TimeString,, yyyy-MM-dd_HH-mm-ss
-    ; We keep the local filename unique
-    ScreenshotPath := A_ScriptDir . "\Screenshots\Restart_" . TimeString . ".png"
-    
-    ; 2. Save Screenshot using FindText
-    try {
-        FindText().SavePic(ScreenshotPath, 0, 0, A_ScreenWidth, A_ScreenHeight)
-    } catch {
-        return
-    }
 
-    ; 3. Verify file is not empty (0 bytes = blank file = no image)
-    FileGetSize, Size, %ScreenshotPath%
-    if (Size < 100) ; If file is too small, it failed
-        return
 
-    ; 4. Upload using Curl (FORCED IMAGE MODE)
-    if (WebhookURL != "") {
-        SafeReason := JsonEscape(Reason)
-        
-        ; We tell Discord the file is named "image.png" inside the packet
-        ; regardless of what it is named on your hard drive.
-        ; This guarantees the link "attachment://image.png" always works.
-        JsonPayload := "{""content"": null, ""embeds"": [{""title"": ""📸 Restart Triggered"", ""description"": ""Trigger: **" . SafeReason . "**"", ""color"": 16711680, ""image"": {""url"": ""attachment://image.png""}}]}"
-        
-        ; Escape quotes
-        JsonPayload := StrReplace(JsonPayload, """", "\""")
-        
-        ; IMPORTANT CHANGE:
-        ; We added ";filename=image.png" to the file flag.
-        ; This forces Discord to treat it as a PNG image, not a generic file.
-        Run, %ComSpec% /c curl -F "payload_json=%JsonPayload%" -F "file=@%ScreenshotPath%;filename=image.png" "%WebhookURL%",, Hide
-    }
-}
