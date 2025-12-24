@@ -34,6 +34,12 @@
     Global Spot_GroundSJW     := {x: 820, y: 677}
     Global Spot_Empty         := {x: 100,  y: 100} 
 
+    Global RSpot_Speed := {x: 1249, y: 532}
+    Global RSpot_SJW := {x: 890,  y: 505}
+    Global RSpot_Miku := {x: 1155,  y: 619}
+    Global RSpot_Ace := {x: 729,  y: 390}  
+
+
     ; Upgrade Search Region (As requested)
     ; x1: 330, y1: 430, x2: 603, y2: 460
     Global UX1 := 330, UY1 := 430, UX2 := 603, UY2 := 460
@@ -81,42 +87,49 @@ return
 
 
     ExecuteStrategy() {
-        ; 1. Place Speedwagon (Slot 3)
-        SafePlace(Key_Speedwagon, Spot_GroundSpeed)
-        
-        ; 2. Place Ace (Slot 2)
-        SafePlace(Key_Ace, Spot_HillAce)
-        
-        ; 3. Upgrade Speedwagon 1
-        SafeUpgradeTo(Spot_GroundSpeed, Text_Upg1)
-        
-        ; 4. Place Kirito (Slot 1)
-        SafePlace(Key_Kirito, Spot_GroundKirito)
-        
-        ; 5. Max Speedwagon
-        SafeMaxUpgrade(Spot_GroundSpeed)
-        
-        ; 6. Max Kirito
-        SafeMaxUpgrade(Spot_GroundKirito)
-        
-        ; 7. Place Miku (Slot 4) and Max
-        ; SafePlace(Key_Miku, Spot_GroundMiku)
-        ; SafeMaxUpgrade(Spot_GroundMiku)
-		
-		 SafePlace(Key_SJW, Spot_GroundSJW)
-        Sleep, 500
-        SafeMaxUpgrade(Spot_GroundSJW)
-        
-        ; 8. Max Ace
-        SafeMaxUpgrade(Spot_HillAce)
-        
-        ; 9. Place both Akainus (Slots 5 & 6)
-        SafePlace(Key_Akainu, Spot_GroundAkainu1)
-        SafePlace(Key_Akainu, Spot_GroundAkainu2)
 
-        SafePlace(Key_Miku, Spot_GroundMiku)
+        SafePlace(Key_Speedwagon, RSpot_Speed)
+        SafePlace(Key_SJW, RSpot_SJW)
+        SafeMaxUpgrade(RSpot_Speed)
+        SafeMaxUpgrade(RSpot_SJW)
+        SafePlace(Key_Miku, RSpot_Miku)
         Sleep, 500
-        SafeMaxUpgrade(Spot_GroundMiku)
+        SafeMaxUpgrade(RSpot_Miku)
+        SafePlace(Key_Ace, RSpot_Ace)
+        Sleep, 500
+        SafeMaxUpgrade(RSpot_Ace)
+        
+        ; SafePlace(Key_Speedwagon, Spot_GroundSpeed)
+        
+        
+        ; SafePlace(Key_Ace, Spot_HillAce)
+        
+        
+        ; SafeUpgradeTo(Spot_GroundSpeed, Text_Upg1)
+        
+        
+        ; SafePlace(Key_Kirito, Spot_GroundKirito)
+        
+        
+        ; SafeMaxUpgrade(Spot_GroundSpeed)
+        
+        
+        ; SafeMaxUpgrade(Spot_GroundKirito)
+        
+		;  SafePlace(Key_SJW, Spot_GroundSJW)
+        ; Sleep, 500
+        ; SafeMaxUpgrade(Spot_GroundSJW)
+        
+        ; SafeMaxUpgrade(Spot_HillAce)
+        
+        ; SafePlace(Key_Akainu, Spot_GroundAkainu1)
+        ; SafePlace(Key_Akainu, Spot_GroundAkainu2)
+
+        ; SafePlace(Key_Miku, Spot_GroundMiku)
+        ; Sleep, 500
+        ; SafeMaxUpgrade(Spot_GroundMiku)
+
+
 
     }
     ; ==============================================================================
