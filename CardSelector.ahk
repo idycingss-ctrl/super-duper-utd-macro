@@ -22,6 +22,7 @@ Global Text_RestartBtn := "|<>*147$53.w3zzzbzzzs3zzzDzzzk3zzyTzzzb63YwyHCTC830tk
 Global Text_MenuAnchor := "|<>*85$55.zzzzzzzzzzzzzzzzznrtzzzzzzltszzzzzzswwTzzzzzwSSDzzzzzkCD43s470k47U0k000E03k08010001s30s730M0MFUA3VUA00M101s1080A1k4w0k4MS1w2TUQ3jzDzlzzzzw"
 Global UncapW_Picked
 Global Spot_MagicianPath := {x: 1234, y: 512}
+Global Text_Defeat := "|<>**50$157.M000Ak000w000D00030A06zz0zg1z03M3zzy0zzzUDzzU60301UM60bk1g10030E00k4000700k0kA30EC0S0U01U800M2000300M0M61U830D0Tz0k7zkA1zw01U060A30k40k7UDzkM3zw60zz01U03061UM20M3k00AA0033000k0k40k30kA1060s0066001VU00M0k30M1UM60U30Q0033000kk00A0M3U60kA30E1UC001VU00MM0060M1s30M61U80kD000kk00AA0030A1w0kA30k40k7U00MM0066001UA0y0M61UM20M3k7zsA1zy30TzU6000630kA10M1s3zs60zy1UDzU600031UM60Uw1g10030E00k40030000kkA30Ts0q0zzlU800M3zz30000MM61UDk0v0Tzzk400A1zzxU0006A30k000NU001s20060007U7zk361UM000Mk000Q10030001k7zw0n0kE"
 
 ; ==============================================================================
 ; === 1. SAFETY ANCHOR (YOU MUST FILL THIS) ===
@@ -151,7 +152,7 @@ SelectBestCard() {
 
 GetZoneInfo(Zone) {
     for index, card in Cards {
-        if (FindText(X, Y, Zone.x1, Zone.y1, Zone.x2, Zone.y2, 0, 0, card.code)) {
+        if (FindText(X, Y, Zone.x1, Zone.y1, Zone.x2, Zone.y2, 0.3, 0.3, card.code)) {
             return {score: card.score, cardName: card.name}
         }
     }

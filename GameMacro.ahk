@@ -85,7 +85,6 @@
 return
     F10::ExitApp
 
-
     ExecuteStrategy() {
 
         
@@ -109,16 +108,19 @@ return
         
 		  SafePlace(Key_SJW, Spot_GroundSJW)
          Sleep, 500
-         SafeMaxUpgrade(Spot_GroundSJW)
-        
-         SafeMaxUpgrade(Spot_HillAce)
-        
+
          SafePlace(Key_Akainu, Spot_GroundAkainu1)
          SafePlace(Key_Akainu, Spot_GroundAkainu2)
 
          SafePlace(Key_Miku, Spot_GroundMiku)
          Sleep, 500
          SafeMaxUpgrade(Spot_GroundMiku)
+
+         SafeMaxUpgrade(Spot_GroundSJW)
+        
+         SafeMaxUpgrade(Spot_HillAce)
+        
+         
 
 
 
@@ -231,10 +233,17 @@ return
         Seconds := Floor(Mod(ElapsedMS, 60000) / 1000)
         TimeStr := Minutes . "m " . Seconds . "s"
         
-        FileAppend, RESTART FOUND - Run took %TimeStr%`n, %LogFile%
-        
+        if (FindText(X, Y, 0, 180, 1920, 420, 0.2, 0.2, Text_Defeat)) {
+    Result := "Defeat"
+    FileAppend, RESTART FOUND - Run took %TimeStr% - DEFEAT`n, %LogFile%
+} else {
+    Result := "Win"
+    FileAppend, RESTART FOUND - Run took %TimeStr% - WIN`n, %LogFile%
+}
+ 
+
         ; --- NOW PASS THE REAL TIME TO DISCORD ---
-        LogFinish(TimeStr, "Restart Button Found")
+        LogFinish(TimeStr, Result)
 	
         
         Loop {
@@ -276,7 +285,7 @@ return
     }
 
     ; --- C. Card Selector ---
-    if (FindText(X, Y, 0, 0, 1920, 1080, 0.1, 0.1, Anchor_CardScreen)) {
+    if (FindText(X, Y, 0, 0, 1920, 1080, 0.2, 0.2, Anchor_CardScreen)) {
         SelectBestCard()
         Sleep, 2000
     }
