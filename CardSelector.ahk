@@ -23,7 +23,7 @@ Global Text_MenuAnchor := "|<>*85$55.zzzzzzzzzzzzzzzzznrtzzzzzzltszzzzzzswwTzzzz
 Global UncapW_Picked
 Global Spot_MagicianPath := {x: 1234, y: 512}
 Global Text_Defeat := "|<>**50$157.M000Ak000w000D00030A06zz0zg1z03M3zzy0zzzUDzzU60301UM60bk1g10030E00k4000700k0kA30EC0S0U01U800M2000300M0M61U830D0Tz0k7zkA1zw01U060A30k40k7UDzkM3zw60zz01U03061UM20M3k00AA0033000k0k40k30kA1060s0066001VU00M0k30M1UM60U30Q0033000kk00A0M3U60kA30E1UC001VU00MM0060M1s30M61U80kD000kk00AA0030A1w0kA30k40k7U00MM0066001UA0y0M61UM20M3k7zsA1zy30TzU6000630kA10M1s3zs60zy1UDzU600031UM60Uw1g10030E00k40030000kkA30Ts0q0zzlU800M3zz30000MM61UDk0v0Tzzk400A1zzxU0006A30k000NU001s20060007U7zk361UM000Mk000Q10030001k7zw0n0kE"
-
+Global Text_Lobby := "|<>*139$77.znzDzzzzzzzzzzbyTzzzzzzzzzzDzzzzzzzzzzzSTzwzzyTzzwzsA1nUFskA27UM083a0Vl0M060k4l3AMX6AF0AMWTb6E1W80aAE14TCAk70s3AMk6M6QNXj3lqMlXgk4sn0S7UAlX0NsNlb0yTUNn70nU"
 ; ==============================================================================
 ; === 1. SAFETY ANCHOR (YOU MUST FILL THIS) ===
 ; ==============================================================================
@@ -103,7 +103,7 @@ Global ZoneR := {x1: 1130, y1: 250, x2: 1390, y2: 320, name: "RIGHT ", clickX: 1
 
 SelectBestCard() {
     MouseMove, 0, 0, 0
-    Sleep, 150
+    Sleep, 350
 
     InfoL := GetZoneInfo(ZoneL)
     InfoM := GetZoneInfo(ZoneM)
@@ -120,21 +120,21 @@ SelectBestCard() {
     
         ; --- AUTO-SCREENSHOT FOR UNKNOWNS ---
         ; Check if ANY of the cards are unknown
-        if (InfoL.cardName = "Unknown" || InfoM.cardName = "Unknown" || InfoR.cardName = "Unknown") {
-            ; Create temp folder if it doesn't exist
-            if !InStr(FileExist("temp"), "D") {
-                FileCreateDir, temp
-            }
+        ; if (InfoL.cardName = "Unknown" || InfoM.cardName = "Unknown" || InfoR.cardName = "Unknown") {
+        ;     ; Create temp folder if it doesn't exist
+        ;     if !InStr(FileExist("temp"), "D") {
+        ;         FileCreateDir, temp
+        ;     }
 
-            ; Generate a unique filename using date and time
-            FormatTime, FileTime,, yyyy-MM-dd_HH-mm-ss
-            SnapPath := "temp\Unknown_" . FileTime . ".bmp"
+        ;     ; Generate a unique filename using date and time
+        ;     FormatTime, FileTime,, yyyy-MM-dd_HH-mm-ss
+        ;     SnapPath := "temp\Unknown_" . FileTime . ".bmp"
 
-            ; Capture the screen and save to the temp folder
-            ; Syntax: FindText().SavePic(FileName, X1, Y1, X2, Y2)
-            ; We capture the middle band where cards appear (Y 400 to 700) to keep files small
-            FindText().SavePic(SnapPath, 0, 400, 1920, 700)
-        }
+        ;     ; Capture the screen and save to the temp folder
+        ;     ; Syntax: FindText().SavePic(FileName, X1, Y1, X2, Y2)
+        ;     ; We capture the middle band where cards appear (Y 400 to 700) to keep files small
+        ;     FindText().SavePic(SnapPath, 0, 400, 1920, 700)
+        ; }
     
 
     ; --- LOGGING ---

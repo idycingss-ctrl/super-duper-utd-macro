@@ -27,11 +27,12 @@
     ; Unit Spots
     Global Spot_HillAce       := {x: 795,  y: 415}
     Global Spot_GroundKirito  := {x: 940,  y: 485}
+    Global Spot_GroundKirito2 := {x :1382, y: 868} 
     Global Spot_GroundMiku    := {x: 836,  y: 502}
     Global Spot_GroundSpeed   := {x: 1250, y: 570}
     Global Spot_GroundAkainu1 := {x: 1160, y: 460}
     Global Spot_GroundAkainu2 := {x: 485,  y: 510}
-    Global Spot_GroundSJW     := {x: 820, y: 677}
+    Global Spot_GroundSJW     := {x: 376, y: 896}
     Global Spot_Empty         := {x: 100,  y: 100} 
 
     Global RSpot_Speed := {x: 1249, y: 532}
@@ -52,30 +53,28 @@
 
     F5::
     SoundBeep, 750, 200
-    
+    LobbySequence()
+    Sleep, 500
+
+
     Loop {
         FileAppend, Starting New Game Loop...`n, %LogFile%
         
         ; --- RESET FLAGS FOR NEW GAME ---
         GameFinished := False 
 		StartTime := A_TickCount 
-        ; We do NOT use SetTimer anymore. GuardDog handles it.
         LogStart("New Game - Voting Phase")
-        ; --- RUN STRATEGY ---
+
         ExecuteStrategy()
-        
-        ; --- WAIT FOR GAME TO END ---
-        ; If strategy finishes, we sit here until GuardDog sees the button
         Loop {
             if (GameFinished) {
                 FileAppend, Loop Broken - Preparing next game...`n, %LogFile%
                 break 
             }
             
-            GuardDog() ; <--- Checks for restart button
+            GuardDog() 
             
             Sleep, 1000 
-            ; Anti-AFK click (only if game isn't finished)
             if (!GameFinished)
                 SafeClick(Spot_WaitClick.x, Spot_WaitClick.y) 
         }
@@ -86,9 +85,19 @@ return
     F10::ExitApp
 
     ExecuteStrategy() {
+        /*
+        SafePlace(Key_Speedwagon, RSpot_Speed)
+        SafePlace(Key_SJW, RSpot_SJW)
+        SafeMaxUpgrade(RSpot_Speed)
+        SafeMaxUpgrade(RSpot_SJW)
+        SafePlace(Key_Miku, RSpot_Miku)
+        Sleep, 500
+        SafeMaxUpgrade(RSpot_Miku)
+        SafePlace(Key_Ace, RSpot_Ace)
+        Sleep, 500
+        SafeMaxUpgrade(RSpot_Ace)
 
-        
-        
+        */
          SafePlace(Key_Speedwagon, Spot_GroundSpeed)
         
         
@@ -118,13 +127,52 @@ return
 
          SafeMaxUpgrade(Spot_GroundSJW)
         
-         SafeMaxUpgrade(Spot_HillAce)
+         SafePlace(Key_Kirito, Spot_GroundKirito2)
+         Sleep, 500
+         SafeMaxUpgrade(Spot_GroundKirito2)
         
-         
+         }
 
+         LobbySequence() {
 
+    ; Check if lobby text exists
+    if !FindText(X, Y, 0, 647, 233, 735, 0, 0, Text_Lobby)
+        return  ; Not found, exit function immediately
 
+    ; --- Sequence actions ---
+    Click, 60, 600
+    Sleep, 4000
+    Click, 955, 485
+    Sleep, 4000
+
+    Send, {w down}{a down}
+    Sleep, 4000
+    Send, {w up}{a up}
+    Sleep, 4000
+
+    Click, 152, 579
+    Sleep, 4000
+    Click, 568, 579
+    Sleep, 4000
+    Click, 1281, 493
+    Sleep, 4000
+    Click, 1227, 830
+    Sleep, 4000
+    Click, 1563, 747
+    Sleep, 4000
+
+    Loop
+    {
+        if (FindText(X, Y, 0, 0, 1920, 1080, 0.2, 0.2, Text_SwitchUnits))
+            break
+        Sleep, 500
     }
+    Sleep, 4000
+
+    Send, {Right down}
+    Sleep, 1480
+    Send, {Right up}
+}
     ; ==============================================================================
     ; === 3. SAFE ACTION FUNCTIONS ===
     ; ==============================================================================

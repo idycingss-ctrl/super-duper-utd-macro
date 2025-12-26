@@ -84,8 +84,10 @@ GetUnitName(SpotObj) {
         return "Akainu (Spot 1)"
     if (X = 485  && Y = 510)
         return "Akainu (Spot 2)"
-    if (X = 820  && Y = 677)
+    if (X = 376  && Y = 896)
         return "Sung Jin Woo"
+    if (X = 1382 && Y = 868)
+        return "Kirito (2)"
 
     return "Unknown Unit (" . X . "," . Y . ")"
 }
