@@ -5,49 +5,21 @@ SetWorkingDir %A_ScriptDir%
 CoordMode, Mouse, Client
 CoordMode, Pixel, Client
 #Include FindText.ahk
-
-; ==============================================================================
-; === SETTINGS ===
-; ==============================================================================
-Global LogFile   := "CardLog.txt"
-Global DebugMode := 0      ; 0 = Click Active. 1 = Log Only (No Click).
-Global LoopState := 0      ; 0 = Off, 1 = On
-Global Text_Upg0	 := "|<>*91$55.zzzlzzXU8zzzszznU7DzzkQTtlnXQ10A3wssk00U01yQQM60000zCCAQS0k0T776CD0M0DnXb7k200rtk3Xs10A3wy1ly0s71yTXt"
-Global Text_Upg1	 := "|<>*88$61.zzzzzzzzzzzzzzzDzzryzzzzzbzzVm7zzzznzznkXzzzztzzlkN4mMb0sDtkC0M030M3ww70A41UAFyTXX6QMX48yDllXCAFm0T7ss1bUA1XznwQ0nk60k7tySkNwHmQ7wzDKDzzzzzyTz07zzzzzzbz47zzzzzztz7zzzzzzzzzz"
-Global Text_Upg2  	 := "|<>*84$63.zzzzzzzzzzzzzzzDzzjzjzzzzlzzkkMTzzzyDzyA0XzzzzlzzXU6DzzzkC7wsMl11kA10Db778001001wwkt010000D7w7C1kk601sz1tkC60k0TbkT81s108Hww0t0D0A10DbU389y1kC3ww0tlzzzzzzXzyMTzzzzzyDzX7zzzzzztzsw"
-Global Text_Max 	 := "|<>*92$55.zsHzDbnw7zwMz7Vkw1zwQD3kwAAvyS31kD0DAzD00s7kDaDbU0Q1s7n7nk0A0w3tXltVa0C1wnwwtm060SRySTs3U77AzDDw7s7VaTbbyHy7tnztzzzzzznk"
-Global Text_SwitchUnits := "|<>*129$87.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzbzznzzwzzzzzwzkDzyAzzXzsyDzXA0zznXzwTz7lzwsXDzzwTzXzsyDzz4TbCH0sQ3z7l8wkUslW061U7sy81U61W4E0UA0z7l0A0s406AQPX7sy8lX7sU0lX3wQT7X74Mb606AQTXXsQMsX40kVlVUAQTU374MU76CA61XXw0ssX63tnnksQwzsDDAwzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzw"
-Global Spot_VoteSkip := {x: 1044, y: 178}
-Global Text_RestartBtn := "|<>*147$53.w3zzzbzzzs3zzzDzzzk3zzyTzzzb63YwyHCTC830tk4QS0F60nUAFw12AtaAMXs20NnAMsDnWDk6A1sTb41UQ83kzDA79sMbXk"
-Global Text_MenuAnchor := "|<>*85$55.zzzzzzzzzzzzzzzzznrtzzzzzzltszzzzzzswwTzzzzzwSSDzzzzzkCD43s470k47U0k000E03k08010001s30s730M0MFUA3VUA00M101s1080A1k4w0k4MS1w2TUQ3jzDzlzzzzw"
-Global UncapW_Picked
-Global Spot_MagicianPath := {x: 1234, y: 512}
-Global Text_Defeat := "|<>**50$157.M000Ak000w000D00030A06zz0zg1z03M3zzy0zzzUDzzU60301UM60bk1g10030E00k4000700k0kA30EC0S0U01U800M2000300M0M61U830D0Tz0k7zkA1zw01U060A30k40k7UDzkM3zw60zz01U03061UM20M3k00AA0033000k0k40k30kA1060s0066001VU00M0k30M1UM60U30Q0033000kk00A0M3U60kA30E1UC001VU00MM0060M1s30M61U80kD000kk00AA0030A1w0kA30k40k7U00MM0066001UA0y0M61UM20M3k7zsA1zy30TzU6000630kA10M1s3zs60zy1UDzU600031UM60Uw1g10030E00k40030000kkA30Ts0q0zzlU800M3zz30000MM61UDk0v0Tzzk400A1zzxU0006A30k000NU001s20060007U7zk361UM000Mk000Q10030001k7zw0n0kE"
-Global Text_Lobby := "|<>*139$77.znzDzzzzzzzzzzbyTzzzzzzzzzzDzzzzzzzzzzzSTzwzzyTzzwzsA1nUFskA27UM083a0Vl0M060k4l3AMX6AF0AMWTb6E1W80aAE14TCAk70s3AMk6M6QNXj3lqMlXgk4sn0S7UAlX0NsNlb0yTUNn70nU"
-; ==============================================================================
-; === 1. SAFETY ANCHOR (YOU MUST FILL THIS) ===
-; ==============================================================================
-; Capture the "Time Left" or "Vote ends in" text.
-; The script will NOT click anything unless it sees this first.
-Global Anchor_CardScreen := "|<>*132$79.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzsztzzzzzzzzzzsDsTz7zzzzzzzw7wTzXzzzzzzzy1wDzlzzzs74Tk0yC3k70Ts1U3k0C60E30Ds0k1k17608377wQMEMEV3333XXyCA8A8MX3VXU1y06C6CA1lklk0z0373771sMMQTzlzXVV3Uw0Q20Ds0lkk1sz0D1U7y0MsQ0wTkTls7zUQST2Tzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzk" ; <--- PASTE CODE HERE
-
+#Include Strings.ahk 
+#Include GameMacro.ahk 
 ; ==============================================================================
 ; === 2. CARD DATABASE ===
 ; ==============================================================================
 Global Cards := []
-
-AddCard("Lovers", "|<>*104$49.Dzzzzzzy7kzzzzzzXeTzzzzzlZDzzzzzsmy6MkkEQNSNaH8viAjCnNYwz6Lb9g2S7X/naaTDllZtr7DbgsmwnXbnqQE33lsMsSDzzzzzzz3zzzzzzz8",  4)
-AddCard("Fortune", "|<>*105$58.Dzzzzzzzzkn3zzzzzzzXfDzzzzzzyChzztzzzzsuz3U1AkD3XftaCQv4taCXbNtngvaMuSQbbCni1XftmSQvCtyCjbNtngvbsuyNbbAniTXXwCD696QCU", 3)
-AddCard("Death", "|<>*102$44.Dzzzzwz3ATzzzDsunzzznyCgzzyQzXfC6310suvAwtlCCinDaQvXfg3lbCsuvDUNniCgnvaQvXXAyFbCss7VWQFiDzzzzzvVzzzzzwm", 2)
-AddCard("Magician", "|<>*102$69.DzzzzzDwzzzVaCDzztzbzzyCYdzzzzzzzzlpZjzzzzzzzyCghkS3C4kQ3lpZjnaNYbnWSCghzAnAwzAvlpZjlaNbblbSCghkAnAwkAvlpZitaNbatbSCghmA3AwmAvllXa9mMkW9XCDzzzynzzzzzkzzzzizzzzzwzzzzw7zzzzzw", 5)
-AddCard("Emperor", "|<>*99$63.DzzzzzzzzzVa7zzzzzzzyCgzzzzzzzzlpbzzzzzzzyCjk0s7313Uloy8b4n8nASCXnCtqNCQblpyNrCE9nYyCjnCtmTCQblpaNrCntngyCAnCtaTCNblk68n1sMsQSDzzztzzzzzkzzzzDzzzzwzzzzszzzzzw", 1)
+Global CardStats := {} 
+InitCardDatabase()
 
 ; ==============================================================================
 ; === 3. ZONE CONFIGURATION (1920x1080) ===
 ; ==============================================================================
-Global ZoneL := {x1: 530,  y1: 250, x2: 790,  y2: 320, name: "LEFT  ", clickX: 660,  clickY: 600}
-Global ZoneM := {x1: 830,  y1: 250, x2: 1090, y2: 320, name: "MIDDLE", clickX: 960,  clickY: 600}
-Global ZoneR := {x1: 1130, y1: 250, x2: 1390, y2: 320, name: "RIGHT ", clickX: 1260, clickY: 600}
+Global ZoneL := {x1: 530,  y1: 250, x2: 790,  y2: 800, name: "LEFT  ", clickX: 660,  clickY: 600}
+Global ZoneM := {x1: 830,  y1: 250, x2: 1090, y2: 800, name: "MIDDLE", clickX: 960,  clickY: 600}
+Global ZoneR := {x1: 1130, y1: 250, x2: 1390, y2: 800, name: "RIGHT ", clickX: 1260, clickY: 600}
 
 ; ==============================================================================
 ; === 4. HOTKEYS ===
@@ -103,68 +75,92 @@ Global ZoneR := {x1: 1130, y1: 250, x2: 1390, y2: 320, name: "RIGHT ", clickX: 1
 
 SelectBestCard() {
     MouseMove, 0, 0, 0
-    Sleep, 350
+    Sleep, 1000
 
-    InfoL := GetZoneInfo(ZoneL)
-    InfoM := GetZoneInfo(ZoneM)
-    InfoR := GetZoneInfo(ZoneR)
+    TempDir := A_ScriptDir . "\temp"
+    if !FileExist(TempDir)
+        FileCreateDir, %TempDir%
 
-    ; --- WINNER CALCULATION ---
-    Winner := ""
-    if (InfoL.score >= InfoM.score && InfoL.score >= InfoR.score)
-        Winner := ZoneL
-    else if (InfoM.score >= InfoL.score && InfoM.score >= InfoR.score)
-        Winner := ZoneM
-    else
-        Winner := ZoneR
+    FormatTime, Timestamp,, yyyyMMdd_HHmmss
+    ImagePath := TempDir . "\Card_" . Timestamp . ".png"
     
-        ; --- AUTO-SCREENSHOT FOR UNKNOWNS ---
-        ; Check if ANY of the cards are unknown
-        ; if (InfoL.cardName = "Unknown" || InfoM.cardName = "Unknown" || InfoR.cardName = "Unknown") {
-        ;     ; Create temp folder if it doesn't exist
-        ;     if !InStr(FileExist("temp"), "D") {
-        ;         FileCreateDir, temp
-        ;     }
+    ; Define search limits (Y is from old zones, X is full width)
+    SearchX1 := 0,    SearchY1 := 250
+    SearchX2 := 1920, SearchY2 := 800
 
-        ;     ; Generate a unique filename using date and time
-        ;     FormatTime, FileTime,, yyyy-MM-dd_HH-mm-ss
-        ;     SnapPath := "temp\Unknown_" . FileTime . ".bmp"
+    FindText().SavePic(ImagePath, SearchX1, SearchY1, SearchX2, SearchY2)
 
-        ;     ; Capture the screen and save to the temp folder
-        ;     ; Syntax: FindText().SavePic(FileName, X1, Y1, X2, Y2)
-        ;     ; We capture the middle band where cards appear (Y 400 to 700) to keep files small
-        ;     FindText().SavePic(SnapPath, 0, 400, 1920, 700)
-        ; }
-    
+    BestCard := {}
+    BestCard.score := -1
+    BestCard.name  := "None"
+    BestCard.x     := 0
+    BestCard.y     := 0
 
-    ; --- LOGGING ---
-    FormatTime, TimeString,, HH:mm:ss
-    LogEntry := "TIME: " . TimeString . " | L: " . InfoL.cardName . " | M: " . InfoM.cardName . " | R: " . InfoR.cardName . " | WINNER: " . Winner.name . "`n"
-    FileAppend, %LogEntry%, %LogFile%
-
-    ; --- EXECUTION ---
-    if (!DebugMode) {
-        Click, % Winner.clickX . ", " . Winner.clickY
-    } else {
-        SoundBeep, 750, 100
-    }
-}
-
-GetZoneInfo(Zone) {
-    for index, card in Cards {
-        if (FindText(X, Y, Zone.x1, Zone.y1, Zone.x2, Zone.y2, 0.3, 0.3, card.code)) {
-            return {score: card.score, cardName: card.name}
+    ; --- SCAN EVERY CARD IN DATABASE ---
+    For index, card in Cards {
+        ; Search the entire horizontal band for this card
+        if (FindText(foundX, foundY, SearchX1, SearchY1, SearchX2, SearchY2, 0.3, 0.3, card.code)) {
+            
+            ; If we found this card, check if it's the best one so far
+            if (card.score > BestCard.score) {
+                BestCard.score := card.score
+                BestCard.name  := card.name
+                BestCard.x     := foundX
+                BestCard.y     := foundY
+            }
         }
     }
-    return {score: 0.0, cardName: "Unknown"}
+
+    ; --- RESULT HANDLER ---
+    if (BestCard.score > -1) {
+        ; 1. Update Stats
+        if (!CardStats.HasKey(BestCard.name)) {
+            CardStats[BestCard.name] := 1
+        } else {
+            CardStats[BestCard.name] += 1
+        }
+
+        ; 2. Log It
+        FormatTime, TimeString,, HH:mm:ss
+        LogEntry := "TIME: " . TimeString . " | SELECTED: " . BestCard.name . " (Score: " . BestCard.score . ") at X" . BestCard.x . " Y" . BestCard.y . "`n"
+        FileAppend, %LogEntry%, %LogFile%
+
+        ; 3. Execute Click at EXACT found coordinates
+        if (!DebugMode) {
+            Click, % BestCard.x . ", 500"
+        } else {
+            SoundBeep, 750, 100
+        }
+    } else {
+        ; Fallback: No known cards detected
+        FileAppend, No known cards found.`n, %LogFile%
+    }
 }
+
+
 
 ClickCard(Zone) {
     Click, % Zone.clickX . ", " . Zone.clickY
     Sleep, 200
 }
 
-AddCard(Name, Code, Score) {
-    Global Cards
-    Cards.Push({name: Name, code: Code, score: Score})
+ResetGameStats() {
+    Global CardStats
+    CardStats := {}
+}
+
+
+GetStatsString() {
+    Global CardStats
+    OutputStr := ""
+    
+    ; Sort/Format the list
+    For cName, cCount in CardStats {
+        OutputStr .= cName . ": " . cCount . "`n"
+    }
+    
+    if (OutputStr == "")
+        return "No cards selected."
+        
+    return OutputStr
 }

@@ -61,35 +61,37 @@ LogUnit(UnitName, Action) {
 }
 
 LogFinish(Duration, Result) {
-    SendWebhook("🏁 Run Complete", "Result: **" . Result . "**`nDuration: " . Duration, 16776960)
+    
+    CardData := GetStatsString()
+
+    Desc := "Result: **" . Result . "**`nDuration: " . Duration . "`n`n__**Card Summary:**__`n```yaml`n" . CardData . "```"
+    
+    SendWebhook("🏁 Run Complete", Desc, 16776960)
 }
 
 LogError(ErrorMsg) {
     SendWebhook("⚠️ Bot Error", ErrorMsg, 15548997)
 }
-GetUnitName(SpotObj) {
-    X := SpotObj.x
-    Y := SpotObj.y
-    
-    ; --- RESTORE YOUR COORDINATES HERE ---
-    if (X = 795  && Y = 415)
-        return "Ace (Hill)"
-    if (X = 940  && Y = 485)
-        return "Kirito"
-    if (X = 836  && Y = 502)
+GetUnitName(Spot) {
+    ; Compare coordinates to identify the unit
+    if (Spot.x == Spot_HillAce.x && Spot.y == Spot_HillAce.y)
+        return "Ace"
+    if (Spot.x == Spot_GroundKirito.x && Spot.y == Spot_GroundKirito.y)
+        return "Kirito 1"
+    if (Spot.x == Spot_GroundKirito2.x && Spot.y == Spot_GroundKirito2.y)
+        return "Kirito 2"
+    if (Spot.x == Spot_GroundMiku.x && Spot.y == Spot_GroundMiku.y)
         return "Miku"
-    if (X = 1250 && Y = 570)
+    if (Spot.x == Spot_GroundSpeed.x && Spot.y == Spot_GroundSpeed.y)
         return "Speedwagon"
-    if (X = 1160 && Y = 460)
-        return "Akainu (Spot 1)"
-    if (X = 485  && Y = 510)
-        return "Akainu (Spot 2)"
-    if (X = 376  && Y = 896)
+    if (Spot.x == Spot_GroundSJW.x && Spot.y == Spot_GroundSJW.y)
         return "Sung Jin Woo"
-    if (X = 1382 && Y = 868)
-        return "Kirito (2)"
-
-    return "Unknown Unit (" . X . "," . Y . ")"
+    if (Spot.x == Spot_GroundAkainu1.x && Spot.y == Spot_GroundAkainu1.y)
+        return "Akainu 1"
+    if (Spot.x == Spot_GroundAkainu2.x && Spot.y == Spot_GroundAkainu2.y)
+        return "Akainu 2"
+        
+    return "Unknown Unit"
 }
 
 

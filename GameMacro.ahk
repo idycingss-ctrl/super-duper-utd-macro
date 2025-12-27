@@ -11,6 +11,7 @@
     ; --- IMPORTS ---
     #Include FindText.ahk
     #Include CardSelector.ahk 
+    #Include Strings.ahk 
 
     ; ==============================================================================
     ; === 1. CONFIGURATION ===
@@ -25,15 +26,16 @@
     Global Key_SJW        := 6
 
     ; Unit Spots
-    Global Spot_HillAce       := {x: 795,  y: 415}
-    Global Spot_GroundKirito  := {x: 940,  y: 485}
-    Global Spot_GroundKirito2 := {x :1382, y: 868} 
-    Global Spot_GroundMiku    := {x: 836,  y: 502}
-    Global Spot_GroundSpeed   := {x: 1250, y: 570}
-    Global Spot_GroundAkainu1 := {x: 1160, y: 460}
-    Global Spot_GroundAkainu2 := {x: 485,  y: 510}
-    Global Spot_GroundSJW     := {x: 376, y: 896}
+    Global Spot_HillAce       := {x: 545,  y: 370}
+    Global Spot_GroundKirito  := {x: 1819, y: 733}
+    Global Spot_GroundKirito2 := {x: 1594, y: 591} 
+    Global Spot_GroundMiku    := {x: 933,  y: 617}
+    Global Spot_GroundSpeed   := {x: 333, y: 900}
+    Global Spot_GroundAkainu1 := {x: 1456, y: 520}
+    Global Spot_GroundAkainu2 := {x: 1219,  y: 511}
+    Global Spot_GroundSJW     := {x: 570, y: 573}
     Global Spot_Empty         := {x: 100,  y: 100} 
+
 
     Global RSpot_Speed := {x: 1249, y: 532}
     Global RSpot_SJW := {x: 890,  y: 505}
@@ -136,14 +138,14 @@ return
          LobbySequence() {
 
     ; Check if lobby text exists
-    if !FindText(X, Y, 0, 647, 233, 735, 0, 0, Text_Lobby)
+    if !FindText(X, Y, 0, 647, 233, 735, 0.2, 0.2, Text_Lobby)
         return  ; Not found, exit function immediately
 
     ; --- Sequence actions ---
     Click, 60, 600
-    Sleep, 4000
+    Sleep, 2500
     Click, 955, 485
-    Sleep, 4000
+    Sleep, 2500
 
     Send, {w down}{a down}
     Sleep, 4000
@@ -151,15 +153,15 @@ return
     Sleep, 4000
 
     Click, 152, 579
-    Sleep, 4000
-    Click, 568, 579
-    Sleep, 4000
+    Sleep, 2500
+    Click, 568, 477
+    Sleep, 2500
     Click, 1281, 493
-    Sleep, 4000
+    Sleep, 2500
     Click, 1227, 830
-    Sleep, 4000
+    Sleep, 2500
     Click, 1563, 747
-    Sleep, 4000
+    Sleep, 2500
 
     Loop
     {
@@ -167,11 +169,6 @@ return
             break
         Sleep, 500
     }
-    Sleep, 4000
-
-    Send, {Right down}
-    Sleep, 1480
-    Send, {Right up}
 }
     ; ==============================================================================
     ; === 3. SAFE ACTION FUNCTIONS ===
@@ -270,6 +267,12 @@ return
     ; ==============================================================================
 
     GuardDog() {
+
+        Static LastCheck := 0
+    ; Only scan the screen every 2 seconds to save CPU
+    if (A_TickCount - LastCheck < 2000) 
+        return
+    LastCheck := A_TickCount
     if (GameFinished)
         return
 
@@ -281,6 +284,7 @@ return
         Seconds := Floor(Mod(ElapsedMS, 60000) / 1000)
         TimeStr := Minutes . "m " . Seconds . "s"
         
+
         if (FindText(X, Y, 0, 180, 1920, 420, 0.2, 0.2, Text_Defeat)) {
     Result := "Defeat"
     FileAppend, RESTART FOUND - Run took %TimeStr% - DEFEAT`n, %LogFile%
@@ -314,6 +318,7 @@ return
         Sleep, 3500 
         
         ; 5. Flip the switch to restart the bot
+        ResetGameStats()
         GameFinished := True
         return
     }
