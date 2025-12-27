@@ -2,6 +2,8 @@
 ; === LOGGER.AHK - "Safe Anywhere" Version ===
 ; ==============================================================================
 
+#Include Gdip_All.ahk
+
 SendWebhook(Title, Message, Color, IncludeScreenshot := false) {
     ; Define Globals so we can access them
     Global WebhookURL, WebhookQueue
