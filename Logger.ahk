@@ -2,6 +2,10 @@
 ; === LOGGER.AHK - "Safe Anywhere" Version ===
 ; ==============================================================================
 
+#Include GameMacro.ahk
+#Include CardSelector.ahk 
+#Include Strings.ahk
+
 SendWebhook(Title, Message, Color) {
     ; Define Globals so we can access them
     Global WebhookURL, WebhookQueue
