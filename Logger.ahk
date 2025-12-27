@@ -2,39 +2,75 @@
 ; === LOGGER.AHK - "Safe Anywhere" Version ===
 ; ==============================================================================
 
-SendWebhook(Title, Message, Color) {
+SendWebhook(Title, Message, Color, IncludeScreenshot := false) {
     ; Define Globals so we can access them
     Global WebhookURL, WebhookQueue
     
     ; 1. SAFETY CHECK: Initialize the Queue if it's missing
-    ; This fixes the issue where the bot "stops" because the array wasn't created.
     if !IsObject(WebhookQueue)
         WebhookQueue := []
 
     ; 2. CONFIGURATION CHECK: Set URL if missing
     if (WebhookURL = "")
-        WebhookURL := "https://discord.com/api/webhooks/1452661525990084702/NwPuAhPZu0D_3jtDp542qbRWGQ_IzNoBunTvcA_8r6cK373-_K_Eg_spiP1VPEDyI0Ei" ; <--- PASTE IT HERE NOW
+        WebhookURL := "https://discord.com/api/webhooks/1452661525990084702/NwPuAhPZu0D_3jtDp542qbRWGQ_IzNoBunTvcA_8r6cK373-_K_Eg_spiP1VPEDyI0Ei"
+    
+    tempFile := ""
+    jsonFile := A_Temp . "\payload.json"
+    
+    ; Capture screenshot if needed
+    if (IncludeScreenshot) {
+        pToken := Gdip_Startup()
+        SysGet, VirtualWidth, 78
+        SysGet, VirtualHeight, 79
+        pBitmap := Gdip_BitmapFromScreen("0|0|" . VirtualWidth . "|" . VirtualHeight)
         
+        tempFile := A_Temp . "\discord_ss.png"
+        Gdip_SaveBitmapToFile(pBitmap, tempFile)
+        Gdip_DisposeImage(pBitmap)
+        Gdip_Shutdown(pToken)
+    }
+    
     SafeTitle := JsonEscape(Title)
     SafeMsg   := JsonEscape(Message)
-    Payload   := "{""embeds"":[{""title"":""" . SafeTitle . """,""description"":""" . SafeMsg . """,""color"":" . Color . "}]}"
-
-    try {
-        WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-        WebRequest.Open("POST", WebhookURL, true) ; Async = True
-        WebRequest.SetRequestHeader("Content-Type", "application/json")
-        WebRequest.SetRequestHeader("User-Agent", "Mozilla/5.0")
-        WebRequest.Option(9) := 2048 
+    
+    ; Build JSON
+    jsonContent := "{"
+    jsonContent .= """embeds"":[{"
+    jsonContent .= """title"":""" . SafeTitle . ""","
+    jsonContent .= """description"":""" . SafeMsg . ""","
+    if (IncludeScreenshot)
+        jsonContent .= """image"":{""url"":""attachment://discord_ss.png""},"
+    jsonContent .= """color"":" . Color
+    jsonContent .= "}]"
+    jsonContent .= "}"
+    
+    ; If screenshot, use curl with file upload
+    if (IncludeScreenshot) {
+        FileDelete, %jsonFile%
+        FileAppend, %jsonContent%, %jsonFile%
         
-        ; 3. KEEP ALIVE: Save object to Global Array
-        WebhookQueue.Push(WebRequest)
+        command := "curl -s -X POST -F ""payload_json=<" . jsonFile . """ -F ""file=@" . tempFile . """ """ . WebhookURL . """"
+        RunWait, %comspec% /c %command%, , Hide
         
-        WebRequest.Send(Payload)
+        FileDelete, %jsonFile%
+        FileDelete, %tempFile%
+    } else {
+        ; Normal webhook without screenshot
+        Payload := jsonContent
         
-        ; 4. CLEANUP: Clear memory after 10 seconds
-        SetTimer, CleanupWebhooks, -10000
-    } catch e {
-        ; If this catches an error, it usually means WebhookQueue was missing
+        try {
+            WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+            WebRequest.Open("POST", WebhookURL, true)
+            WebRequest.SetRequestHeader("Content-Type", "application/json")
+            WebRequest.SetRequestHeader("User-Agent", "Mozilla/5.0")
+            WebRequest.Option(9) := 2048 
+            
+            WebhookQueue.Push(WebRequest)
+            WebRequest.Send(Payload)
+            
+            SetTimer, CleanupWebhooks, -10000
+        } catch e {
+        }
     }
 }
 
@@ -69,12 +105,13 @@ LogFinish(Duration, Result, Summary := "") {
         Desc .= "`n" . Summary
     Desc .= "`n`n__**Card Summary:**__`n```yaml`n" . CardData . "```"
     
-    SendWebhook("🏁 Run Complete", Desc, 16776960)
+    SendWebhook("🏁 Run Complete", Desc, 16776960, true)  ; Screenshot enabled
 }
 
 LogError(ErrorMsg) {
     SendWebhook("⚠️ Bot Error", ErrorMsg, 15548997)
 }
+
 GetUnitName(Spot) {
     Global
 
@@ -93,6 +130,3 @@ GetUnitName(Spot) {
 
     return "Unknown Unit"
 }
-
-
-
