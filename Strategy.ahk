@@ -9,22 +9,32 @@ Strategy_Execute_Default() {
     Global Text_Upg1
     
     SafePlace(Key_Speedwagon, Spot_GroundSpeed)
+    Sleep, 250
     SafePlace(Key_SJW, Spot_GroundSJW)
     Sleep, 500
     
     SafeUpgradeTo(Spot_GroundSpeed, Text_Upg1)
+    Sleep, 250
     SafePlace(Key_Kirito, Spot_GroundKirito)
+    Sleep, 250
     SafeMaxUpgrade(Spot_GroundSpeed)
+    Sleep, 250
     SafeMaxUpgrade(Spot_GroundKirito)
+    Sleep, 250
     
     SafePlace(Key_Ace, Spot_HillAce)
+    Sleep, 250
     SafePlace(Key_Akainu, Spot_GroundAkainu1)
+    Sleep, 250
     SafePlace(Key_Akainu, Spot_GroundAkainu2)
+    Sleep, 250
     
     SafePlace(Key_Miku, Spot_GroundMiku)
     Sleep, 500
     SafeMaxUpgrade(Spot_GroundMiku)
+    Sleep, 250
     SafeMaxUpgrade(Spot_GroundSJW)
+    Sleep, 250
     
     SafePlace(Key_Kirito, Spot_GroundKirito2)
     Sleep, 500
@@ -36,12 +46,17 @@ Strategy_Execute_Rework() {
     Global RSpot_Speed, RSpot_SJW, RSpot_Miku, RSpot_Ace
     
     SafePlace(Key_Speedwagon, RSpot_Speed)
+    Sleep, 250
     SafePlace(Key_SJW, RSpot_SJW)
+    Sleep, 250
     SafeMaxUpgrade(RSpot_Speed)
+    Sleep, 250
     SafeMaxUpgrade(RSpot_SJW)
+    Sleep, 250
     SafePlace(Key_Miku, RSpot_Miku)
     Sleep, 500
     SafeMaxUpgrade(RSpot_Miku)
+    Sleep, 250
     SafePlace(Key_Ace, RSpot_Ace)
     Sleep, 500
     SafeMaxUpgrade(RSpot_Ace)
@@ -52,9 +67,13 @@ Strategy_Execute_Speed() {
     Global Spot_GroundSpeed, Spot_GroundKirito, Spot_HillAce
     
     SafePlace(Key_Speedwagon, Spot_GroundSpeed)
+    Sleep, 250
     SafeMaxUpgrade(Spot_GroundSpeed)
+    Sleep, 250
     SafePlace(Key_Kirito, Spot_GroundKirito)
+    Sleep, 250
     SafeMaxUpgrade(Spot_GroundKirito)
+    Sleep, 250
     SafePlace(Key_Ace, Spot_HillAce)
 }
 
@@ -81,6 +100,7 @@ Strategy_Execute_Custom() {
             spot := GetSpotFromName(spotName)
             if (spot) {
                 SafePlace(unitKey, spot)
+                Sleep, 250
             }
         } else if (actionType = "UpgradeMax") {
             spotName := CustomStrategyActions%idx%_Spot
@@ -89,6 +109,7 @@ Strategy_Execute_Custom() {
             spot := GetSpotFromName(spotName)
             if (spot) {
                 SafeMaxUpgrade(spot)
+                Sleep, 250
             }
         }
     }

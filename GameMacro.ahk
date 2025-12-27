@@ -21,6 +21,12 @@ DllCall("SetThreadDpiAwarenessContext", "ptr", -3)
 Global GameFinished := False
 Global StartTime := 0
 Global CurrentStrategy := "Default"
+Global SessionWins := 0
+Global SessionLosses := 0
+Global SessionEfficiencySum := 0
+Global SessionEfficiencyCount := 0
+Global SessionStartTime := 0
+Global BestMatchMinutes := 0
 
 ; --- INITIALIZE CONFIGURATION ---
 IfNotExist, config.ini
@@ -37,6 +43,12 @@ F3::ShowConfigGUI()  ; Open configuration GUI (changed from F4)
 
 F5::
     SoundBeep, 750, 200
+    SessionWins := 0
+    SessionLosses := 0
+    SessionEfficiencySum := 0
+    SessionEfficiencyCount := 0
+    BestMatchMinutes := 0
+    SessionStartTime := A_TickCount
     LobbySequence()
     Sleep, 500
     GuardDog()
@@ -214,7 +226,35 @@ GuardDog() {
             Result := "Win"
         }
         
-        LogFinish(TimeStr, Result)
+        matchMinutes := ElapsedMS / 60000.0
+        if (BestMatchMinutes = 0 || matchMinutes < BestMatchMinutes)
+            BestMatchMinutes := matchMinutes
+
+        if (Result = "Win")
+            SessionWins++
+        else
+            SessionLosses++
+
+        totalGames := SessionWins + SessionLosses
+        winRate := (totalGames > 0) ? Round((SessionWins / totalGames) * 100, 2) : 0
+
+        sessionElapsedMS := (SessionStartTime > 0) ? (A_TickCount - SessionStartTime) : 0
+        sessionMinutes := Floor(sessionElapsedMS / 60000)
+        sessionSeconds := Floor(Mod(sessionElapsedMS, 60000) / 1000)
+        sessionTimeStr := sessionMinutes . "m " . sessionSeconds . "s"
+
+        efficiency := (matchMinutes > 0) ? (BestMatchMinutes / matchMinutes) : 0
+        efficiencyPct := Round(efficiency * 100, 2)
+
+        Summary := "__**Session Stats:**__`nWin Rate: **" . winRate . "%**`nWins: **" . SessionWins . "**`nLosses: **" . SessionLosses . "**`nSession Runtime: " . sessionTimeStr . "`nEfficiency: **" . efficiencyPct . "%**"
+
+        LogFinish(TimeStr, Result, Summary)
+
+        ; Update session stats
+        if (Result = "Win") {
+            SessionEfficiencySum += matchMinutes
+            SessionEfficiencyCount++
+        }
         
         Loop {
             Click, %X%, %Y%
@@ -226,7 +266,7 @@ GuardDog() {
         }
         
         Sleep, 3500 
-        ResetGameStats()
+        ResetGameStats() ; only resets card stats, not session stats
         GameFinished := True
         return
     }

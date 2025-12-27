@@ -2,10 +2,6 @@
 ; === LOGGER.AHK - "Safe Anywhere" Version ===
 ; ==============================================================================
 
-#Include GameMacro.ahk
-#Include CardSelector.ahk 
-#Include Strings.ahk
-
 SendWebhook(Title, Message, Color) {
     ; Define Globals so we can access them
     Global WebhookURL, WebhookQueue
@@ -64,11 +60,14 @@ LogUnit(UnitName, Action) {
     SendWebhook("⚔️ Unit Action", "Unit: **" . UnitName . "**`nAction: " . Action, 3447003)
 }
 
-LogFinish(Duration, Result) {
+LogFinish(Duration, Result, Summary := "") {
     
     CardData := GetStatsString()
 
-    Desc := "Result: **" . Result . "**`nDuration: " . Duration . "`n`n__**Card Summary:**__`n```yaml`n" . CardData . "```"
+    Desc := "Result: **" . Result . "**`nDuration: " . Duration
+    if (Summary != "")
+        Desc .= "`n" . Summary
+    Desc .= "`n`n__**Card Summary:**__`n```yaml`n" . CardData . "```"
     
     SendWebhook("🏁 Run Complete", Desc, 16776960)
 }
@@ -77,24 +76,21 @@ LogError(ErrorMsg) {
     SendWebhook("⚠️ Bot Error", ErrorMsg, 15548997)
 }
 GetUnitName(Spot) {
-    ; Compare coordinates to identify the unit
-    if (Spot.x == Spot_HillAce.x && Spot.y == Spot_HillAce.y)
-        return "Ace"
-    if (Spot.x == Spot_GroundKirito.x && Spot.y == Spot_GroundKirito.y)
-        return "Kirito 1"
-    if (Spot.x == Spot_GroundKirito2.x && Spot.y == Spot_GroundKirito2.y)
-        return "Kirito 2"
-    if (Spot.x == Spot_GroundMiku.x && Spot.y == Spot_GroundMiku.y)
-        return "Miku"
-    if (Spot.x == Spot_GroundSpeed.x && Spot.y == Spot_GroundSpeed.y)
-        return "Speedwagon"
-    if (Spot.x == Spot_GroundSJW.x && Spot.y == Spot_GroundSJW.y)
-        return "Sung Jin Woo"
-    if (Spot.x == Spot_GroundAkainu1.x && Spot.y == Spot_GroundAkainu1.y)
-        return "Akainu 1"
-    if (Spot.x == Spot_GroundAkainu2.x && Spot.y == Spot_GroundAkainu2.y)
-        return "Akainu 2"
-        
+    Global
+
+    if (!IsObject(Spot))
+        return "Unknown Unit"
+
+    Loop, %SpotCount% {
+        spotIdx := A_Index - 1
+        if (Spot.x == Spots%spotIdx%_X && Spot.y == Spots%spotIdx%_Y) {
+            spotUnitName := Spots%spotIdx%_Unit
+            if (spotUnitName != "" && spotUnitName != A_Space)
+                return spotUnitName
+            return "Unknown Unit"
+        }
+    }
+
     return "Unknown Unit"
 }
 
