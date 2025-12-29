@@ -3,18 +3,16 @@
 ; ==============================================================================
 
 #Include Gdip_All.ahk
+#Include Config.ahk
+
 
 SendWebhook(Title, Message, Color, IncludeScreenshot := false) {
     ; Define Globals so we can access them
-    Global WebhookURL, WebhookQueue
+    Global UserWebhook, WebhookQueue
     
     ; 1. SAFETY CHECK: Initialize the Queue if it's missing
     if !IsObject(WebhookQueue)
         WebhookQueue := []
-
-    ; 2. CONFIGURATION CHECK: Set URL if missing
-    if (WebhookURL = "")
-        WebhookURL := "https://discord.com/api/webhooks/1452661525990084702/NwPuAhPZu0D_3jtDp542qbRWGQ_IzNoBunTvcA_8r6cK373-_K_Eg_spiP1VPEDyI0Ei"
     
     tempFile := ""
     jsonFile := A_Temp . "\payload.json"
@@ -51,7 +49,7 @@ SendWebhook(Title, Message, Color, IncludeScreenshot := false) {
         FileDelete, %jsonFile%
         FileAppend, %jsonContent%, %jsonFile%
         
-        command := "curl -s -X POST -F ""payload_json=<" . jsonFile . """ -F ""file=@" . tempFile . """ """ . WebhookURL . """"
+        command := "curl -s -X POST -F ""payload_json=<" . jsonFile . """ -F ""file=@" . tempFile . """ """ . UserWebhook . """"
         RunWait, %comspec% /c %command%, , Hide
         
         FileDelete, %jsonFile%
@@ -62,7 +60,7 @@ SendWebhook(Title, Message, Color, IncludeScreenshot := false) {
         
         try {
             WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-            WebRequest.Open("POST", WebhookURL, true)
+            WebRequest.Open("POST", UserWebhook, true)
             WebRequest.SetRequestHeader("Content-Type", "application/json")
             WebRequest.SetRequestHeader("User-Agent", "Mozilla/5.0")
             WebRequest.Option(9) := 2048 
@@ -111,7 +109,7 @@ LogFinish(Duration, Result, Summary := "") {
 }
 
 LogError(ErrorMsg) {
-    SendWebhook("⚠️ Bot Error", ErrorMsg, 15548997)
+    SendWebhook("⚠️ Bot Error", ErrorMsg, 15548997, true)
 }
 
 GetUnitName(Spot) {

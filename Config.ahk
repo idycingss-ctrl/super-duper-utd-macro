@@ -27,6 +27,10 @@ Global Spot_MagicianPath := {x: 960, y: 540}
 ; Strategy
 Global CurrentStrategy := "Default"
 
+; Links
+Global UserWebhook := ""
+Global UserGameLink := ""
+
 ; Custom Strategy
 Global CustomStrategyActionCount := 0
 
@@ -35,13 +39,19 @@ Global CustomStrategyActionCount := 0
 ; ==============================================================================
 
 Config_LoadFromFile(filename := "config.ini") {
-    Global CurrentConfigFile, CurrentStrategy
+    Global CurrentConfigFile, CurrentStrategy, UserWebhook, UserGameLink
     
     if (filename != "")
         CurrentConfigFile := filename
         
     ; Load General Settings
     IniRead, CurrentStrategy, %CurrentConfigFile%, General, Strategy, Default
+    
+    ; --- ADD THIS BLOCK ---
+    ; Load Links
+    IniRead, UserWebhook, %CurrentConfigFile%, General, Webhook, %A_Space%
+    IniRead, UserGameLink, %CurrentConfigFile%, General, GameLink, %A_Space%
+    ; ----------------------
     
     ; Load Lists
     Units_LoadFromFile()
@@ -51,13 +61,19 @@ Config_LoadFromFile(filename := "config.ini") {
 
 Config_SaveToFile(filename := "config.ini") {
     Global CurrentConfigFile
-    Global CurrentStrategy
+    Global CurrentStrategy, UserWebhook, UserGameLink
     
     if (filename != "")
         CurrentConfigFile := filename
         
     ; Save General Settings
     IniWrite, %CurrentStrategy%, %CurrentConfigFile%, General, Strategy
+    
+    ; --- ADD THIS BLOCK ---
+    ; Save Links
+    IniWrite, %UserWebhook%, %CurrentConfigFile%, General, Webhook
+    IniWrite, %UserGameLink%, %CurrentConfigFile%, General, GameLink
+    ; ----------------------
     
     ; Save Lists
     Units_SaveToFile()

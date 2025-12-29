@@ -39,8 +39,7 @@ Config_LoadFromFile()
 ; === HOTKEYS ===
 ; ==============================================================================
 
-F3::ShowConfigGUI()  ; Open configuration GUI (changed from F4)
-
+F3::ShowConfigGUI()  
 F5::
     SoundBeep, 750, 200
     SessionWins := 0
@@ -75,6 +74,10 @@ F5::
         
         Sleep, 2000 
     }
+return
+
+F7::
+LogError("Debug")
 return
 
 F10::ExitApp
@@ -115,6 +118,58 @@ LobbySequence() {
             break
         Sleep, 500
     }
+}
+
+; ==============================================================================
+; === DISCONNECT HANDLER ===
+; ==============================================================================
+
+HandleDisconnect() {
+    
+    ; Close the game if it's still running
+    if WinExist("ahk_exe RobloxPlayerBeta.exe") {
+        WinClose, ahk_exe RobloxPlayerBeta.exe
+        Sleep, 2000
+        
+        ; Force kill if still running
+        Process, Close, RobloxPlayerBeta.exe
+        Sleep, 1000
+    }
+    
+    ; Open via deeplink (replace with your actual game link)
+    Run, %UserGameLink%
+    
+    ; Wait for Roblox to launch
+    WinWait, ahk_exe RobloxPlayerBeta.exe, , 30
+    if (ErrorLevel) {
+        LogError("Failed to launch Roblox - retrying...")
+        Sleep, 3000
+        return HandleDisconnect() ; Retry
+    }
+    WinWaitActive, ahk_exe RobloxPlayerBeta.exe
+    Sleep, 7000 ; Initial load buffer
+    
+    ; Wait for lobby text to appear (max 2 minutes)
+    Loop, 120 {
+        ; Check if game closed during loading
+        if (!WinExist("ahk_exe RobloxPlayerBeta.exe")) {
+            LogError("Game closed during reconnect - restarting...")
+            Sleep, 2000
+            return HandleDisconnect()
+        }
+        
+        if (FindText(X, Y, 0, 647, 233, 735, 0.2, 0.2, Text_Lobby)) {
+            LogError("Lobby loaded successfully")
+            Sleep, 10000
+            LobbySequence()
+            return
+        }
+        Sleep, 1000
+    }
+    
+    ; If we timeout, try again
+    LogError("Lobby load timeout - reconnecting...")
+    HandleDisconnect()
 }
 
 ; ==============================================================================
@@ -212,6 +267,20 @@ GuardDog() {
     
     if (GameFinished)
         return
+
+    if (!WinExist("ahk_exe RobloxPlayerBeta.exe")) {
+        LogError("Game window closed unexpectedly")
+        HandleDisconnect()
+        GameFinished := True
+        return
+    }
+
+    ; --- DISCONNECT CHECK ---
+    if (FindText(X, Y, 0, 0, 1920, 1080, 0.2, 0.2, Text_Disconnected)) {
+        HandleDisconnect()
+        GameFinished := True
+        return
+    }
 
     ; --- RESTART CHECK ---
     if (FindText(X, Y, 0, 500, 1920, 850, 0.1, 0.1, Text_RestartBtn)) {

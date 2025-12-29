@@ -10,7 +10,9 @@ ShowConfigGUI() {
     Global UnitsList, AddUnitBtn, EditUnitBtn, RemoveUnitBtn
     Global SpotsList, AddSpotBtn, EditSpotBtn, RemoveSpotBtn
     Global ConfigLoaded, CurrentConfigFile
-    
+    Global UserWebhook, UserGameLink
+
+
     ; FIX: Only load configuration ONCE when script starts
     if (ConfigLoaded = 0) {
         if FileExist("config.ini")
@@ -22,7 +24,7 @@ ShowConfigGUI() {
     Gui, Config:Font, s10
     
     ; === TAB CONTROL ===
-    Gui, Config:Add, Tab3, x10 y10 w680 h500 gOnTabChange, Keys|Coordinates|Strategy
+    Gui, Config:Add, Tab3, x10 y10 w680 h500 gOnTabChange, Keys|Coordinates|Strategy|Links
     
     ; === TAB 1: KEYS ===
     Gui, Config:Tab, 1
@@ -62,6 +64,16 @@ ShowConfigGUI() {
     Gui, Config:Add, Button, x250 y410 w100 vClearAllStrategyBtn gClearAllStrategyAction Hidden, Clear All
     Gui, Config:Add, Button, x360 y410 w100 vEditStrategyBtn gEditStrategyAction Hidden Disabled, Edit
     Gui, Config:Add, Button, x360 y450 w100 vRemoveStrategyBtn gRemoveStrategyAction Hidden Disabled, Remove
+
+    ; === TAB 4: LINKS ===
+    Gui, Config:Tab, 4
+    Gui, Config:Add, Text, x30 y50, Discord Webhook URL:
+    Gui, Config:Add, Edit, x30 y75 w600 vUserWebhook, %UserWebhook%
+    
+    Gui, Config:Add, Text, x30 y125, Game Link (Roblox/Private Server):
+    Gui, Config:Add, Edit, x30 y150 w600 vUserGameLink, %UserGameLink%
+    
+    Gui, Config:Add, Text, x30 y200 cGray, Note: These links are saved automatically when you click the 'Save' button.
     
     UpdateStrategyControls()
     
@@ -959,21 +971,52 @@ return
 
 SaveConfig:
     Gui, Config:Submit, NoHide
-    Config_SaveToFile() ; Saves to whatever file is currently loaded
-    MsgBox, Saved to %CurrentConfigFile%
+    
+    ; 1. Check if variables were captured from GUI
+    if (UserWebhook = "" and UserGameLink = "") {
+        ; This isn't an error, just means boxes are empty
+    }
+
+    ; 2. Try Sanitization (with error protection)
+    if (UserGameLink != "" && !InStr(UserGameLink, "roblox://")) {
+        if IsFunc("GetRobloxProtocol") {
+            sanitizedLink := GetRobloxProtocol(UserGameLink)
+            if (InStr(sanitizedLink, "roblox://")) {
+                UserGameLink := sanitizedLink
+                GuiControl, Config:, UserGameLink, %UserGameLink%
+            }
+        } else {
+            MsgBox, 16, Error, The function 'GetRobloxProtocol' is missing from the bottom of your script!`nThe link was not sanitized, but settings will still be saved.
+        }
+    }
+
+    ; 3. Save to File
+    Config_SaveToFile() 
+    
+    ; 4. Confirm Save
+    MsgBox, Saved configuration to: %CurrentConfigFile%`nWebhook: %UserWebhook%`nGame: %UserGameLink%
 return
 
 SaveConfigAs:
     Gui, Config:Submit, NoHide
+    
+    ; --- ADDED: Sanitize Game Link ---
+    if (UserGameLink != "" && !InStr(UserGameLink, "roblox://")) {
+        sanitizedLink := GetRobloxProtocol(UserGameLink)
+        if (InStr(sanitizedLink, "roblox://")) {
+            UserGameLink := sanitizedLink
+            GuiControl, Config:, UserGameLink, %UserGameLink%
+        }
+    }
+
     FileSelectFile, SelectedFile, S16, config.ini, Save Configuration As, Configuration Files (*.ini)
     if (SelectedFile = "")
         return
     
-    ; Enforce .ini extension
     if (SubStr(SelectedFile, -3) != ".ini")
         SelectedFile := SelectedFile . ".ini"
         
-    Config_SaveToFile(SelectedFile) ; Save and update current filename
+    Config_SaveToFile(SelectedFile)
     Gui, Config:Show, , Bot Configuration - %CurrentConfigFile%
     MsgBox, Saved to %SelectedFile%
 return
@@ -995,6 +1038,56 @@ LoadConfigFrom:
     ShowConfigGUI()
     MsgBox, Loaded from %SelectedFile%
 return
+
+; ==============================================================================
+; === HELPER FUNCTIONS ===
+; ==============================================================================
+
+GetRobloxProtocol(url) { 
+    
+    if (InStr(url, "/share")) {
+        RegExMatch(url, "i)code=([^&]+)", matchShare)
+        
+        if (matchShare1 != "") {
+            ; The protocol destination is the same for both share link types
+            return "roblox://navigation/share_links?code=" . matchShare1 . "&type=Server"
+        }
+    }
+    
+    ; 1. Attempt to find the Place ID
+    ; Matches "roblox.com/games/12345" OR "placeId=12345"
+    RegExMatch(url, "i)(?:games\/|placeId=)(\d+)", matchID)
+    
+    ; If no Place ID is found, return the original URL or an error
+    if (matchID1 = "")
+        return "Error: Place ID not found in link."
+
+    PlaceID := matchID1
+    
+    ; 2. Check for Private Server Link Code (Legacy/Standard)
+    ; Matches "privateServerLinkCode=12345..."
+    RegExMatch(url, "i)privateServerLinkCode=([^&]+)", matchVIP)
+
+    ; 3. Check for specific Public Server Job ID
+    ; Matches "gameInstanceId=..." (rare in web links, but good to have)
+    RegExMatch(url, "i)gameInstanceId=([^&]+)", matchJob)
+
+    ; === BUILD THE RESULT ===
+    
+    ; Base Protocol
+    FinalLink := "roblox://experiences/start?placeId=" . PlaceID
+
+    ; If it is a Private Server
+    if (matchVIP1 != "") {
+        FinalLink := FinalLink . "&linkCode=" . matchVIP1
+    }
+    ; If it is a Specific Public Server Instance
+    else if (matchJob1 != "") {
+        FinalLink := FinalLink . "&gameInstanceId=" . matchJob1
+    }
+
+    return FinalLink
+}
 
 ConfigClose:
     Gui, Config:Destroy
