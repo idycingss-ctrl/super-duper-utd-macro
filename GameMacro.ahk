@@ -342,9 +342,7 @@ GuardDog() {
 
     ; --- START / WAVE SKIP ---
     if (FindText(X, Y, 0, 0, 1920, 1080, 0.1, 0.1, Text_StartAnchor)) {
-        vx := Spot_VoteSkip.x
-        vy := Spot_VoteSkip.y
-        Click, %vx%, %vy%
+        Click, 1044, 178
         Sleep, 600
         mx := Spot_MagicianPath.x
         my := Spot_MagicianPath.y
@@ -354,9 +352,7 @@ GuardDog() {
     }
 
     if (FindText(X, Y, 0, 700, 1920, 900, 0.1, 0.1, Text_SwitchUnits)) {
-        vx := Spot_VoteSkip.x
-        vy := Spot_VoteSkip.y
-        Click, %vx%, %vy%
+        Click, 1044, 178
         Sleep, 500
     }
 
