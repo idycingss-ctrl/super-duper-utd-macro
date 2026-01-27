@@ -88,6 +88,10 @@ JsonEscape(String) {
 }
 
 ; --- SHORTCUT FUNCTIONS ---
+Log(Info) {
+    SendWebhook("ℹ️ Information", Info , 5763719)
+}
+
 LogStart(MapName) {
     SendWebhook("🚀 New Run Started", "Map: **" . MapName . "**", 5763719)
 }
