@@ -27,7 +27,13 @@ Global SessionEfficiencySum := 0
 Global SessionEfficiencyCount := 0
 Global SessionStartTime := 0
 Global BestMatchMinutes := 0
-Global MacroRunning := False  ; NEW: Track if macro is running
+Global MacroRunning := False
+
+; --- POLLING CONFIGURATION ---
+Global PollInterval := 100          ; Check every 100ms
+Global MaxPollAttempts := 50        ; 50 * 100ms = 5 seconds max timeout
+Global PlacementTimeout := 30       ; 30 * 100ms = 3 seconds for placement
+Global UpgradeTimeout := 20         ; 20 * 100ms = 2 seconds for upgrade check
 
 ; --- INITIALIZE CONFIGURATION ---
 IfNotExist, config.ini
@@ -64,19 +70,17 @@ F5::
     Sleep, 500
     GuardDog()
     Loop {
-        if (!MacroRunning)  ; Check if we should stop
+        if (!MacroRunning)
             break
             
-        ; --- RESET FLAGS FOR NEW GAME ---
         GameFinished := False 
         StartTime := A_TickCount 
         LogStart("New Game - Voting Phase")
         
-        ; NOW execute the strategy after game has started
         Strategy_Execute(CurrentStrategy)
         
         Loop {
-            if (!MacroRunning)  ; Check if we should stop
+            if (!MacroRunning)
                 break
                 
             if (GameFinished) {
@@ -90,7 +94,7 @@ F5::
                 SafeClick(Spot_WaitClick.x, Spot_WaitClick.y) 
         }
         
-        if (!MacroRunning)  ; Check if we should stop
+        if (!MacroRunning)
             break
             
         Sleep, 2000 
@@ -114,6 +118,10 @@ F10::
     }
 return
 
+F6::
+TiltCameraDown()
+return
+
 ; ==============================================================================
 ; === LOBBY SEQUENCE ===
 ; ==============================================================================
@@ -122,11 +130,9 @@ LobbySequence() {
     if (!MacroRunning)
         return
         
-    ; Check if lobby text exists
     if !FindText(X, Y, 0, 647, 233, 735, 0.2, 0.2, Text_Lobby)
         return
 
-    ; --- Sequence actions ---
     if (!MacroRunning)
         return
     Click, 60, 570
@@ -177,6 +183,8 @@ LobbySequence() {
             return
     }
     TiltCameraDown()
+    Sleep, 2500
+    TiltCameraDown()
     Sleep, 1000
 }
 
@@ -191,11 +199,9 @@ HandleDisconnect() {
     if (!MacroRunning)
         return
     
-    ; Track first disconnect time
     if (ReconnectAttempts = 0)
         FirstDisconnectTime := A_TickCount
     
-    ; Check if 6 hours (21600000 ms) have passed since first disconnect
     ElapsedTime := A_TickCount - FirstDisconnectTime
     if (ElapsedTime > 21600000) {
         LogError("6 hour reconnect limit reached - stopping macro")
@@ -204,7 +210,6 @@ HandleDisconnect() {
         return
     }
     
-    ; Calculate delay based on attempt number (exponential backoff)
     if (ReconnectAttempts = 0)
         ReconnectDelay := 30000
     else if (ReconnectAttempts = 1)
@@ -218,41 +223,34 @@ HandleDisconnect() {
     
     ReconnectAttempts++
     
-    ; Wait for internet connection before attempting reconnect
     WaitForInternet(ReconnectDelay, ReconnectAttempts)
     
     if (!MacroRunning)
         return
     
-    ; Close the game if it's still running
     if WinExist("ahk_exe RobloxPlayerBeta.exe") {
         WinClose, ahk_exe RobloxPlayerBeta.exe
         Sleep, 2000
         
-        ; Force kill if still running
         Process, Close, RobloxPlayerBeta.exe
         Sleep, 1000
     }
     
-    ; Open via deeplink (replace with your actual game link)
     Run, %UserGameLink%
     
-    ; Wait for Roblox to launch
     WinWait, ahk_exe RobloxPlayerBeta.exe, , 30
     if (ErrorLevel) {
         LogError("Failed to launch Roblox - retrying...")
         Sleep, 3000
-        return HandleDisconnect() ; Retry
+        return HandleDisconnect()
     }
     WinWaitActive, ahk_exe RobloxPlayerBeta.exe
-    Sleep, 7000 ; Initial load buffer
+    Sleep, 7000
     
-    ; Wait for lobby text to appear (max 2 minutes)
     Loop, 120 {
         if (!MacroRunning)
             return
             
-        ; Check if game closed during loading
         if (!WinExist("ahk_exe RobloxPlayerBeta.exe")) {
             LogError("Game closed during reconnect - restarting...")
             Sleep, 2000
@@ -261,7 +259,7 @@ HandleDisconnect() {
         
         if (FindText(X, Y, 0, 647, 233, 735, 0.2, 0.2, Text_Lobby)) {
             LogError("Lobby loaded successfully")
-            ReconnectAttempts := 0 ; Reset on success
+            ReconnectAttempts := 0
             Sleep, 10000
             LobbySequence()
             return
@@ -269,7 +267,6 @@ HandleDisconnect() {
         Sleep, 1000
     }
     
-    ; If we timeout, try again
     LogError("Lobby load timeout - reconnecting...")
     HandleDisconnect()
 }
@@ -283,26 +280,22 @@ WaitForInternet(MinDelay, AttemptNumber) {
     InternetDown := false
     DowntimeStart := 0
     
-    ; First, wait the minimum delay while checking internet periodically
     Loop {
         if (!MacroRunning)
             return
         
         CurrentWaitTime := A_TickCount - StartWaitTime
         
-        ; Check internet every 5 seconds during the delay
         TotalPings++
         
         if (!CheckInternetConnection()) {
             FailedPings++
             
-            ; Mark internet as down on first failed ping
             if (!InternetDown) {
                 InternetDown := true
                 DowntimeStart := A_TickCount
             }
         } else {
-            ; Internet is back up
             if (InternetDown) {
                 DowntimeEnd := A_TickCount
                 TotalDowntime := (DowntimeEnd - DowntimeStart) / 1000
@@ -312,28 +305,25 @@ WaitForInternet(MinDelay, AttemptNumber) {
                 InternetDown := false
             }
             
-            ; If we've waited the minimum delay and internet is up, we're done
             if (CurrentWaitTime >= MinDelay)
                 break
         }
         
-        Sleep, 5000 ; Check every 5 seconds
+        Sleep, 5000
     }
     
-    ; If no downtime occurred, just log normal reconnect
     if (FailedPings = 0) {
         LogError("Reconnect attempt " . AttemptNumber . " - waited " . Round(MinDelay/1000) . "s")
     }
 }
 
 CheckInternetConnection() {
-    ; Ping Google DNS (8.8.8.8) with 2 second timeout
     RunWait, %ComSpec% /c ping -n 1 -w 2000 8.8.8.8 | find "TTL=" > nul, , Hide
     
     if (ErrorLevel = 0)
-        return true ; Internet is up
+        return true
     
-    return false ; Internet is down
+    return false
 }
 
 ; ==============================================================================
@@ -341,25 +331,22 @@ CheckInternetConnection() {
 ; ==============================================================================
 
 TiltCameraDown() {
-    ; Hold right mouse button
     DllCall("mouse_event"
-        , "UInt", 0x0008  ; MOUSEEVENTF_RIGHTDOWN
+        , "UInt", 0x0008
         , "UInt", 0
         , "UInt", 0
         , "UInt", 0
         , "UPtr", 0)
     Sleep, 20
-    ; Move mouse downward (increase dy for stronger tilt)
     DllCall("mouse_event"
-        , "UInt", 0x0001  ; MOUSEEVENTF_MOVE
-        , "Int", 0       ; dx
-        , "Int", 600     ; dy (downward movement)
+        , "UInt", 0x0001
+        , "Int", 0
+        , "Int", 600
         , "UInt", 0
         , "UPtr", 0)
     Sleep, 20
-    ; Release right mouse button
     DllCall("mouse_event"
-        , "UInt", 0x0010 ; MOUSEEVENTF_RIGHTUP
+        , "UInt", 0x0010
         , "UInt", 0
         , "UInt", 0
         , "UInt", 0
@@ -367,7 +354,47 @@ TiltCameraDown() {
 }
 
 ; ==============================================================================
-; === SAFE ACTION FUNCTIONS ===
+; === POLLING HELPER FUNCTIONS ===
+; ==============================================================================
+
+; Wait for a specific text to appear or disappear
+PollForText(TextPattern, X1, Y1, X2, Y2, Tolerance1, Tolerance2, ShouldExist := true, MaxAttempts := 0) {
+    global PollInterval, MaxPollAttempts, MacroRunning, GameFinished
+    
+    if (MaxAttempts = 0)
+        MaxAttempts := MaxPollAttempts
+    
+    Attempts := 0
+    Loop, %MaxAttempts% {
+        if (!MacroRunning || GameFinished)
+            return false
+            
+        Found := FindText(X, Y, X1, Y1, X2, Y2, Tolerance1, Tolerance2, TextPattern)
+        
+        if (ShouldExist && Found)
+            return true
+        if (!ShouldExist && !Found)
+            return true
+            
+        Attempts++
+        Sleep, %PollInterval%
+    }
+    
+    return false
+}
+
+; Wait for UI to stabilize after a click (checks if screen content changes)
+WaitForUIStabilize(Delay := 200) {
+    global MacroRunning, GameFinished
+    
+    if (!MacroRunning || GameFinished)
+        return
+    
+    Sleep, %Delay%
+}
+
+; ==============================================================================
+; === IMPROVED SAFE ACTION FUNCTIONS ===
 ; ==============================================================================
 
 SafeClick(X, Y) {
@@ -377,81 +404,116 @@ SafeClick(X, Y) {
     if (GameFinished) 
         return
     Click, %X%, %Y%
-    Sleep, 100
+    Sleep, 50  ; Minimal delay for click to register
 }
 
+; Improved SafePlace with polling
 SafePlace(SlotKey, Spot) {
+    global PlacementTimeout, PollInterval, MacroRunning, GameFinished
+    
     Loop {
-        if (!MacroRunning)
+        if (!MacroRunning || GameFinished)
             return
+        
         GuardDog()
-        if (GameFinished) 
-            return
-            
-        ; 1. Try to place the unit
+        
+        ; 1. Send placement key
         Send, %SlotKey%
-        Sleep, 150
-        SafeClick(Spot.x, Spot.y) ; Ghost
-        SafeClick(Spot.x, Spot.y) ; Confirm
-        Sleep, 600
+        WaitForUIStabilize(100)
         
-        ; 2. Open menu to check success
-        SafeClick(Spot.x, Spot.y) 
-        Sleep, 500
+        ; 2. Click to place (ghost)
+        SafeClick(Spot.x, Spot.y)
+        WaitForUIStabilize(50)
         
-        ; 3. Verify placement
-        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, Text_Upg0)) {
+        ; 3. Confirm placement
+        SafeClick(Spot.x, Spot.y)
+        WaitForUIStabilize(100)
+        
+        ; 4. Open menu to verify - use shorter timeout
+        SafeClick(Spot.x, Spot.y)
+        
+        ; 5. Poll for upgrade menu to appear (indicates successful placement)
+        if (PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, PlacementTimeout)) {
             Name := GetUnitName(Spot)
             LogUnit(Name, "Placed Successfully")
             
+            ; Close menu
             SafeClick(Spot_Empty.x, Spot_Empty.y)
+            WaitForUIStabilize(100)
             break
         }
         
+        ; If placement failed, close any menus and retry
+        SafeClick(Spot_Empty.x, Spot_Empty.y)
         MouseMove, 0, 0, 0
-        Sleep, 1500
+        WaitForUIStabilize(300)
     }
 }
 
+; Improved SafeUpgradeTo with polling
 SafeUpgradeTo(Spot, TargetText) {
+    global UpgradeTimeout, PollInterval, MacroRunning, GameFinished
+    
     Loop {
-        if (!MacroRunning)
+        if (!MacroRunning || GameFinished)
             return
-        if (GameFinished) 
-            return
+            
+        ; Open unit menu
         SafeClick(Spot.x, Spot.y)
-        Sleep, 500
+        WaitForUIStabilize(150)
         
-        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, TargetText)) {
+        ; Check if we've reached target upgrade level
+        if (PollForText(TargetText, 0, 0, 1000, 700, 0.3, 0.3, true, UpgradeTimeout)) {
             SafeClick(Spot_Empty.x, Spot_Empty.y)
+            WaitForUIStabilize(100)
             break 
         }
         
         GuardDog()
+        
+        ; Attempt upgrade
         Send, e
-        Sleep, 1000
+        
+        ; Wait for upgrade animation/processing
+        WaitForUIStabilize(200)
+        
+        ; Check if upgrade completed by looking for the menu again
+        ; If menu disappeared, wait a bit longer for it to reappear
+        PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, 5)
     }
 }
 
+; Improved SafeMaxUpgrade with polling
 SafeMaxUpgrade(Spot) {
+    global UpgradeTimeout, PollInterval, MacroRunning, GameFinished
+    
     Loop {
-        if (!MacroRunning)
+        if (!MacroRunning || GameFinished)
             return
-        if (GameFinished) 
-            return
+            
+        ; Open unit menu
         SafeClick(Spot.x, Spot.y)
-        Sleep, 500
+        WaitForUIStabilize(150)
         
-        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, Text_Max)) {
+        ; Check if max level reached
+        if (PollForText(Text_Max, 0, 0, 1000, 700, 0.3, 0.3, true, UpgradeTimeout)) {
             SafeClick(Spot_Empty.x, Spot_Empty.y)
             Name := GetUnitName(Spot)
             LogUnit(Name, "Max Level Reached")
+            WaitForUIStabilize(100)
             break 
         }
         
         GuardDog()
+        
+        ; Attempt upgrade
         Send, e
-        Sleep, 1000
+        
+        ; Wait for upgrade animation/processing
+        WaitForUIStabilize(200)
+        
+        ; Check if menu is still visible (upgrade in progress)
+        PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, 5)
     }
 }
 
@@ -524,7 +586,6 @@ GuardDog() {
 
         LogFinish(TimeStr, Result, Summary)
 
-        ; Update session stats
         if (Result = "Win") {
             SessionEfficiencySum += matchMinutes
             SessionEfficiencyCount++
@@ -542,7 +603,7 @@ GuardDog() {
         }
         
         Sleep, 3500 
-        ResetGameStats() ; only resets card stats, not session stats
+        ResetGameStats()
         GameFinished := True
         return
     }
