@@ -118,10 +118,6 @@ F10::
     }
 return
 
-F6::
-TiltCameraDown()
-return
-
 ; ==============================================================================
 ; === LOBBY SEQUENCE ===
 ; ==============================================================================
@@ -182,8 +178,6 @@ LobbySequence() {
         if (!MacroRunning)
             return
     }
-    TiltCameraDown()
-    Sleep, 2500
     TiltCameraDown()
     Sleep, 1000
 }
