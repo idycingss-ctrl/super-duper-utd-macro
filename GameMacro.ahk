@@ -390,6 +390,21 @@ WaitForUIStabilize(Delay := 200) {
 ; ==============================================================================
 ; === IMPROVED SAFE ACTION FUNCTIONS ===
 ; ==============================================================================
+; Helper function: Poll with proper timeout, return true if found, false if timeout
+PollWithTimeout(TextToFind, TimeoutMs) {
+    StartTime := A_TickCount
+    Loop {
+        ; Check if timeout exceeded
+        if (A_TickCount - StartTime > TimeoutMs)
+            return false
+        
+        ; Try to find text
+        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, TextToFind))
+            return true
+        
+        Sleep, 50  ; Small delay between checks
+    }
+}
 
 SafeClick(X, Y) {
     if (!MacroRunning)
@@ -398,116 +413,119 @@ SafeClick(X, Y) {
     if (GameFinished) 
         return
     Click, %X%, %Y%
-    Sleep, 50  ; Minimal delay for click to register
+    Sleep, 100
 }
 
-; Improved SafePlace with polling
 SafePlace(SlotKey, Spot) {
-    global PlacementTimeout, PollInterval, MacroRunning, GameFinished
-    
     Loop {
-        if (!MacroRunning || GameFinished)
+        if (!MacroRunning)
             return
-        
         GuardDog()
-        
-        ; 1. Send placement key
+        if (GameFinished) 
+            return
+            
+        ; 1. Try to place the unit
         Send, %SlotKey%
-        WaitForUIStabilize(100)
+        Sleep, 150
+        SafeClick(Spot.x, Spot.y) ; Ghost
+        SafeClick(Spot.x, Spot.y) ; Confirm
+        Sleep, 600
         
-        ; 2. Click to place (ghost)
-        SafeClick(Spot.x, Spot.y)
-        WaitForUIStabilize(50)
+        ; 2. Open menu to check success
+        SafeClick(Spot.x, Spot.y) 
         
-        ; 3. Confirm placement
-        SafeClick(Spot.x, Spot.y)
-        WaitForUIStabilize(100)
-        
-        ; 4. Open menu to verify - use shorter timeout
-        SafeClick(Spot.x, Spot.y)
-        
-        ; 5. Poll for upgrade menu to appear (indicates successful placement)
-        if (PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, PlacementTimeout)) {
+        ; 3. Poll for verification (up to 2 seconds, but exits early if found)
+        if (PollWithTimeout(Text_Upg0, 2000)) {
             Name := GetUnitName(Spot)
             LogUnit(Name, "Placed Successfully")
             
-            ; Close menu
             SafeClick(Spot_Empty.x, Spot_Empty.y)
-            WaitForUIStabilize(100)
             break
         }
         
-        ; If placement failed, close any menus and retry
-        SafeClick(Spot_Empty.x, Spot_Empty.y)
+        ; Placement failed - retry after delay
         MouseMove, 0, 0, 0
-        WaitForUIStabilize(300)
+        Sleep, 1500
     }
 }
 
-; Improved SafeUpgradeTo with polling
 SafeUpgradeTo(Spot, TargetText) {
-    global UpgradeTimeout, PollInterval, MacroRunning, GameFinished
+    if (!MacroRunning)
+        return
+    if (GameFinished) 
+        return
     
+    ; Open menu once
+    SafeClick(Spot.x, Spot.y)
+    Sleep, 300
+    
+    ; Spam 'e' while checking for target level
+    StartTime := A_TickCount
     Loop {
-        if (!MacroRunning || GameFinished)
+        if (!MacroRunning)
             return
-            
-        ; Open unit menu
-        SafeClick(Spot.x, Spot.y)
-        WaitForUIStabilize(150)
+        if (GameFinished) 
+            return
         
-        ; Check if we've reached target upgrade level
-        if (PollForText(TargetText, 0, 0, 1000, 700, 0.3, 0.3, true, UpgradeTimeout)) {
+        ; Timeout after 30 seconds
+        if (A_TickCount - StartTime > 30000) {
+            LogUnit("Upgrade", "Timeout")
             SafeClick(Spot_Empty.x, Spot_Empty.y)
-            WaitForUIStabilize(100)
+            return
+        }
+        
+        ; Check if target level reached
+        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, TargetText)) {
+            SafeClick(Spot_Empty.x, Spot_Empty.y)
             break 
         }
         
         GuardDog()
         
-        ; Attempt upgrade
+        ; Spam upgrade
         Send, e
-        
-        ; Wait for upgrade animation/processing
-        WaitForUIStabilize(200)
-        
-        ; Check if upgrade completed by looking for the menu again
-        ; If menu disappeared, wait a bit longer for it to reappear
-        PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, 5)
+        Sleep, 150  ; Short delay between upgrade attempts
     }
 }
 
-; Improved SafeMaxUpgrade with polling
 SafeMaxUpgrade(Spot) {
-    global UpgradeTimeout, PollInterval, MacroRunning, GameFinished
+    if (!MacroRunning)
+        return
+    if (GameFinished) 
+        return
     
+    ; Open menu once
+    SafeClick(Spot.x, Spot.y)
+    Sleep, 300
+    
+    ; Spam 'e' while checking for max level
+    StartTime := A_TickCount
     Loop {
-        if (!MacroRunning || GameFinished)
+        if (!MacroRunning)
             return
-            
-        ; Open unit menu
-        SafeClick(Spot.x, Spot.y)
-        WaitForUIStabilize(150)
+        if (GameFinished) 
+            return
+        
+        ; Timeout after 60 seconds
+        if (A_TickCount - StartTime > 60000) {
+            LogUnit("Upgrade", "Timeout")
+            SafeClick(Spot_Empty.x, Spot_Empty.y)
+            return
+        }
         
         ; Check if max level reached
-        if (PollForText(Text_Max, 0, 0, 1000, 700, 0.3, 0.3, true, UpgradeTimeout)) {
+        if (FindText(X, Y, 0, 0, 1000, 700, 0.3, 0.3, Text_Max)) {
             SafeClick(Spot_Empty.x, Spot_Empty.y)
             Name := GetUnitName(Spot)
             LogUnit(Name, "Max Level Reached")
-            WaitForUIStabilize(100)
             break 
         }
         
         GuardDog()
         
-        ; Attempt upgrade
+        ; Spam upgrade
         Send, e
-        
-        ; Wait for upgrade animation/processing
-        WaitForUIStabilize(200)
-        
-        ; Check if menu is still visible (upgrade in progress)
-        PollForText(Text_Upg0, 0, 0, 1000, 700, 0.3, 0.3, true, 5)
+        Sleep, 150  ; Short delay between upgrade attempts
     }
 }
 
