@@ -118,6 +118,10 @@ F10::
     }
 return
 
+F6::
+	TiltCameraDown()
+return
+
 ; ==============================================================================
 ; === LOBBY SEQUENCE ===
 ; ==============================================================================
@@ -126,6 +130,8 @@ LobbySequence() {
     if (!MacroRunning)
         return
         
+	ActivateAndFullscreenRoblox()
+	
     if !FindText(X, Y, 0, 647, 233, 735, 0.2, 0.2, Text_Lobby)
         return
 
@@ -178,8 +184,10 @@ LobbySequence() {
         if (!MacroRunning)
             return
     }
+	Sleep, 7500
     TiltCameraDown()
-    Sleep, 1000
+    Sleep, 3500
+	TiltCameraDown()
 }
 
 ; ==============================================================================
@@ -258,11 +266,40 @@ HandleDisconnect() {
             LobbySequence()
             return
         }
+		
+		ActivateAndFullscreenRoblox()
+		
         Sleep, 1000
     }
     
     LogError("Lobby load timeout - reconnecting...")
     HandleDisconnect()
+}
+
+ActivateAndFullscreenRoblox() {
+    ; Wait for window to exist
+    WinWait, ahk_exe RobloxPlayerBeta.exe, , 10
+    if (ErrorLevel) {
+        LogError("Failed to find Roblox window")
+        return false
+    }
+    
+    ; Activate the window
+    WinActivate, ahk_exe RobloxPlayerBeta.exe
+    WinWaitActive, ahk_exe RobloxPlayerBeta.exe, , 5
+    Sleep, 500
+    
+    ; Check if already fullscreen by checking window style
+    WinGet, Style, Style, ahk_exe RobloxPlayerBeta.exe
+    
+    ; If window has borders/title bar (not fullscreen), press F11
+    ; 0xC00000 = WS_CAPTION (title bar)
+    if (Style & 0xC00000) {
+        Send, {F11}
+        Sleep, 1000
+    }
+    
+    return true
 }
 
 WaitForInternet(MinDelay, AttemptNumber) {
