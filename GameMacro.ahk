@@ -28,6 +28,7 @@ Global SessionEfficiencyCount := 0
 Global SessionStartTime := 0
 Global BestMatchMinutes := 0
 Global MacroRunning := False
+Global GameStartSet := False
 
 ; --- POLLING CONFIGURATION ---
 Global PollInterval := 100          ; Check every 100ms
@@ -74,6 +75,7 @@ F5::
             break
             
         GameFinished := False 
+        GameStartSet := False
         StartTime := A_TickCount 
         LogStart("New Game - Voting Phase")
         
@@ -572,6 +574,7 @@ SafeMaxUpgrade(Spot) {
 
 GuardDog() {
     Static LastCheck := 0
+    global MacroRunning, GameFinished, GameStartSet, StartTime
     
     if (!MacroRunning)
         return
@@ -659,6 +662,10 @@ GuardDog() {
 
     ; --- START / WAVE SKIP ---
     if (FindText(X, Y, 0, 0, 1920, 1080, 0.1, 0.1, Text_StartAnchor)) {
+        if (!GameStartSet) {
+            StartTime := A_TickCount
+            GameStartSet := True
+        }
         Click, 1044, 178
         Sleep, 600
         mx := Spot_MagicianPath.x
